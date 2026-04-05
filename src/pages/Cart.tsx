@@ -2,7 +2,6 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { Trash2, Plus, Minus, ChevronLeft, ArrowRight } from 'lucide-react';
-import { usePaystackPayment } from 'react-paystack';
 import { useCartStore } from '../store/cartStore';
 
 export default function Cart() {
@@ -19,7 +18,6 @@ export default function Cart() {
     currency: 'GHS',
   };
 
-  const initializePayment = usePaystackPayment(config);
 
   const onSuccess = (reference: any) => {
     console.log(reference);
