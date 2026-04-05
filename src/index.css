@@ -1,0 +1,47 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap');
+
+@theme {
+  --font-sans: "Noto Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Noto Sans", sans-serif;
+  
+  --color-primary: var(--theme-primary);
+  --color-accent: var(--theme-accent);
+  --color-base: var(--theme-base);
+}
+
+@layer base {
+  :root {
+    --theme-primary: #0A0A0A;
+    --theme-accent: #2D6A4F;
+    --theme-base: #F5F5F5;
+  }
+  
+  .dark {
+    --theme-primary: #F5F5F5;
+    --theme-accent: #2D6A4F;
+    --theme-base: #0A0A0A;
+  }
+
+  body {
+    @apply bg-base text-primary font-sans antialiased;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display uppercase tracking-tighter;
+  }
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+.shrinking-dark::view-transition-old(root) {
+  z-index: 2;
+}
+
+.shrinking-dark::view-transition-new(root) {
+  z-index: 1;
+}
