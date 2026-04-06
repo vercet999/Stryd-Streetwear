@@ -95,7 +95,7 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16 relative">
           
-          {/* Left Section: Mobile Menu Button & Desktop Nav */}
+          {/* Left Section: Mobile Menu Button & Desktop Logo */}
           <div className="flex-1 flex items-center justify-start">
             <div className="flex md:hidden">
               <button
@@ -105,17 +105,24 @@ export default function Navbar() {
                 {isOpen ? <X size={24} /> : <Menu size={24} />}
               </button>
             </div>
+            <div className="hidden md:flex flex-shrink-0">
+              <Link to="/" className="flex items-center">
+                <img src={isDark ? "/assets/stryd-white.svg" : "/assets/stryd-black.svg"} alt="STRYD" className="h-6 w-auto" />
+              </Link>
+            </div>
+          </div>
+
+          {/* Center Section: Mobile Logo & Desktop Nav */}
+          <div className="flex-shrink-0 absolute left-1/2 transform -translate-x-1/2 flex items-center">
+            <div className="flex md:hidden">
+              <Link to="/" className="flex items-center">
+                <img src={isDark ? "/assets/stryd-white.svg" : "/assets/stryd-black.svg"} alt="STRYD" className="h-6 w-auto" />
+              </Link>
+            </div>
             <div className="hidden md:flex space-x-8">
               <Link to="/shop" className="text-sm font-medium uppercase tracking-widest hover:text-accent transition-colors">Shop</Link>
               <Link to="/contact" className="text-sm font-medium uppercase tracking-widest hover:text-accent transition-colors">Contact Us</Link>
             </div>
-          </div>
-
-          {/* Center Section: Logo */}
-          <div className="flex-shrink-0 absolute left-1/2 transform -translate-x-1/2">
-            <Link to="/" className="flex items-center">
-              <img src={isDark ? "/assets/stryd-white.svg" : "/assets/stryd-black.svg"} alt="STRYD" className="h-6 w-auto" />
-            </Link>
           </div>
 
           {/* Right Section: Actions */}
