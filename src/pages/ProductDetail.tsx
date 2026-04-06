@@ -243,17 +243,9 @@ export default function ProductDetail() {
               <button 
                 onClick={handleAddToCart}
                 disabled={product.stock_status === 'outofstock'}
-                className="w-[90%] bg-primary text-base py-5 font-bold uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-accent transition-all shadow-xl shadow-primary/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-primary text-base py-5 font-bold uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-accent transition-all shadow-xl shadow-primary/10 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 SECURE PAIR
-              </button>
-              <button 
-                onClick={handleAddToCart}
-                disabled={product.stock_status === 'outofstock'}
-                className="w-[10%] bg-primary text-base flex items-center justify-center hover:bg-accent transition-all shadow-xl shadow-primary/10 disabled:opacity-50 disabled:cursor-not-allowed"
-                aria-label="Add to cart"
-              >
-                <ShoppingCart size={20} />
               </button>
             </div>
             <p className="text-[10px] text-center uppercase tracking-widest text-primary/40">

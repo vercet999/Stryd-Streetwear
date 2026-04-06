@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { Trash2, Plus, Minus, ChevronLeft, ArrowRight } from 'lucide-react';
+import { usePaystackPayment } from 'react-paystack';
 import { useCartStore } from '../store/cartStore';
 
 export default function Cart() {
@@ -14,10 +15,11 @@ export default function Cart() {
     reference: (new Date()).getTime().toString(),
     email: "customer@example.com", // In a real app, get this from user input/auth
     amount: total * 100, // Paystack amount is in pesewas (kobo)
-    publicKey: 'pk_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx', // Replace with real public key
+    publicKey: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || '', // Replace with real public key
     currency: 'GHS',
   };
 
+  const initializePayment = usePaystackPayment(config);
 
   const onSuccess = (reference: any) => {
     console.log(reference);
@@ -30,6 +32,10 @@ export default function Cart() {
   };
 
   const handleCheckout = () => {
+    if (!config.publicKey) {
+      alert("Please configure your Paystack Public Key in the environment variables (VITE_PAYSTACK_PUBLIC_KEY).");
+      return;
+    }
     initializePayment({ onSuccess, onClose });
   };
 
