@@ -142,7 +142,7 @@ export default function ProductDetail() {
             onMouseLeave={handleMouseLeave}
           >
             <img 
-              src={product.images[selectedImage]?.src || product.images[0]?.src || '/assets/stryd-model-01.webp'} 
+              src={product.images[selectedImage]?.src || product.images[0]?.src || 'https://stryd.visoirejewels.com/wp-content/uploads/2026/04/stryd-model-01.webp'} 
               alt={product.name} 
               className="w-full h-full object-contain mix-blend-multiply transition-transform duration-200 ease-out"
               style={zoomStyle}

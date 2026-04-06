@@ -5,7 +5,7 @@ export default function Footer() {
     <footer className="bg-[#0A0A0A] text-[#F5F5F5] py-12 px-4">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12">
         <div className="space-y-4">
-          <img src="/assets/logo/STRYD-white.png" alt="STRYD" className="h-8 w-auto" />
+          <img src="/assets/stryd-white.svg" alt="STRYD" className="h-8 w-auto" />
           <p className="text-sm text-[#F5F5F5]/60 max-w-xs">
             Affordable streetwear footwear for the modern urban explorer. Clean. Minimal. Confident.
           </p>

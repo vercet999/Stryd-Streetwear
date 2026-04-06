@@ -30,14 +30,14 @@ const MOCK_PRODUCTS: Product[] = [
       {
         id: 1,
         date_created: "2024-01-01",
-        src: "/assets/stryd-model-01.webp",
+        src: "https://stryd.visoirejewels.com/wp-content/uploads/2026/04/stryd-model-01.webp",
         name: "STRYD Model 01",
         alt: "STRYD Model 01 Deep Green"
       },
       {
         id: 11,
         date_created: "2024-01-01",
-        src: "/assets/stryd-model-01.webp", // Using the same placeholder for now, but it will trigger the hover effect
+        src: "https://stryd.visoirejewels.com/wp-content/uploads/2026/04/stryd-model-01.webp", // Using the same placeholder for now, but it will trigger the hover effect
         name: "STRYD Model 01 Alternate",
         alt: "STRYD Model 01 Deep Green Alternate"
       }
@@ -75,7 +75,7 @@ const MOCK_PRODUCTS: Product[] = [
       {
         id: 2,
         date_created: "2024-01-02",
-        src: "/assets/stryd-model-01.webp",
+        src: "https://stryd.visoirejewels.com/wp-content/uploads/2026/04/stryd-model-01.webp",
         name: "STRYD Core",
         alt: "STRYD Core Stealth Black"
       }
@@ -113,7 +113,7 @@ const MOCK_PRODUCTS: Product[] = [
       {
         id: 3,
         date_created: "2024-01-03",
-        src: "/assets/stryd-model-01.webp",
+        src: "https://stryd.visoirejewels.com/wp-content/uploads/2026/04/stryd-model-01.webp",
         name: "STRYD Comfort",
         alt: "STRYD Comfort Cloud White"
       }
@@ -151,7 +151,7 @@ const MOCK_PRODUCTS: Product[] = [
       {
         id: 4,
         date_created: "2024-01-04",
-        src: "/assets/stryd-model-01.webp",
+        src: "https://stryd.visoirejewels.com/wp-content/uploads/2026/04/stryd-model-01.webp",
         name: "STRYD Model 02",
         alt: "STRYD Model 02 Ash Grey"
       }

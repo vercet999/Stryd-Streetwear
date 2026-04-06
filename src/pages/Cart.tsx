@@ -71,7 +71,7 @@ export default function Cart() {
             >
               <div className="w-24 h-24 md:w-32 md:h-32 bg-[#0A0A0A]/5 dark:bg-[#F5F5F5] rounded-[5px] overflow-hidden shrink-0">
                 <img 
-                  src={item.product.images[0]?.src || '/assets/stryd-model-01.webp'} 
+                  src={item.product.images[0]?.src || 'https://stryd.visoirejewels.com/wp-content/uploads/2026/04/stryd-model-01.webp'} 
                   alt={item.product.name}
                   className="w-full h-full object-contain mix-blend-multiply"
                   referrerPolicy="no-referrer"

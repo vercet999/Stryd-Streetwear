@@ -63,7 +63,7 @@ export default function Home() {
       <section className="relative h-[90vh] flex items-center justify-center overflow-hidden bg-[#0A0A0A]">
         <div className="absolute inset-0 opacity-60">
           <img 
-            src="/hero-image.webp" 
+            src="https://stryd.visoirejewels.com/wp-content/uploads/2026/04/hero-image-scaled.webp" 
             alt="STRYD Slides" 
             className="w-full h-full object-cover"
             referrerPolicy="no-referrer"
@@ -76,7 +76,7 @@ export default function Home() {
             transition={{ duration: 0.8 }}
             className="flex justify-center"
           >
-            <img src="/assets/logo/STRYD-white.png" alt="STRYD" className="h-16 md:h-24 lg:h-32 w-auto" />
+            <img src="/assets/stryd-white.svg" alt="STRYD" className="h-16 md:h-24 lg:h-32 w-auto" />
           </motion.div>
           <motion.p 
             initial={{ opacity: 0, y: 20 }}
@@ -211,9 +211,9 @@ export default function Home() {
       {/* Categories */}
       <section className="w-full grid grid-cols-1 min-[922px]:grid-cols-3 gap-4 min-[922px]:gap-0 px-4 sm:px-6 min-[922px]:px-0 min-[922px]:h-[90vh]">
         {[
-          { name: 'Street Core', slug: 'street-core', primaryImg: '/assets/street-core.jpg', secondaryImg: '/assets/streer-core-fuse.webp' },
-          { name: 'Daily Comfort', slug: 'daily-comfort', primaryImg: '/assets/daily-comfort.webp', secondaryImg: '/assets/daily-comfort-crocs.webp' },
-          { name: 'The Statement', slug: 'the-statement', primaryImg: '/assets/signature.webp', secondaryImg: '/assets/signature-timberland.webp' }
+          { name: 'Street Core', slug: 'street-core', primaryImg: 'https://stryd.visoirejewels.com/wp-content/uploads/2026/04/street-core.jpg', secondaryImg: 'https://stryd.visoirejewels.com/wp-content/uploads/2026/04/streer-core-fuse.webp' },
+          { name: 'Daily Comfort', slug: 'daily-comfort', primaryImg: 'https://stryd.visoirejewels.com/wp-content/uploads/2026/04/daily-comfort.webp', secondaryImg: 'https://stryd.visoirejewels.com/wp-content/uploads/2026/04/daily-comfort-crocs.webp' },
+          { name: 'The Statement', slug: 'the-statement', primaryImg: 'https://stryd.visoirejewels.com/wp-content/uploads/2026/04/signature.webp', secondaryImg: 'https://stryd.visoirejewels.com/wp-content/uploads/2026/04/signature-timberland.webp' }
         ].map((cat, index) => (
           <Link 
             key={cat.slug} 

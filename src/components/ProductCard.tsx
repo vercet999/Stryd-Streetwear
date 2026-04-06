@@ -14,7 +14,7 @@ export default function ProductCard({ product }: { product: Product; key?: any }
       <Link to={`/product/${product.slug}`} className="block space-y-4">
         <div className="aspect-square overflow-hidden bg-[#0A0A0A]/5 dark:bg-[#F5F5F5] relative rounded-[5px]">
           <img
-            src={product.images[0]?.src || '/assets/stryd-model-01.webp'}
+            src={product.images[0]?.src || 'https://stryd.visoirejewels.com/wp-content/uploads/2026/04/stryd-model-01.webp'}
             alt={product.images[0]?.alt || product.name}
             className={cn(
               "absolute inset-0 w-full h-full object-contain mix-blend-multiply transition-opacity duration-500 ease-in-out",

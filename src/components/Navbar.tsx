@@ -106,7 +106,7 @@ export default function Navbar() {
           {/* Logo */}
           <div className="flex-shrink-0">
             <Link to="/" className="flex items-center">
-              <img src={isDark ? "/assets/logo/STRYD-white.png" : "/assets/logo/STRYD.png"} alt="STRYD" className="h-6 w-auto" />
+              <img src={isDark ? "/assets/stryd-white.svg" : "/assets/stryd-black.svg"} alt="STRYD" className="h-6 w-auto" />
             </Link>
           </div>
 
