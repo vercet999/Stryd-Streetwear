@@ -32,6 +32,22 @@
   }
 }
 
+@keyframes diagonal-wipe {
+  0%, 40% {
+    clip-path: polygon(0 0, 0 0, 0 0);
+  }
+  50%, 90% {
+    clip-path: polygon(0 0, 200% 0, 0 200%);
+  }
+  100% {
+    clip-path: polygon(0 0, 0 0, 0 0);
+  }
+}
+
+.animate-diagonal-wipe {
+  animation: diagonal-wipe 6s infinite ease-in-out;
+}
+
 ::view-transition-old(root),
 ::view-transition-new(root) {
   animation: none;

@@ -3,8 +3,10 @@ import { useSearchParams } from 'react-router-dom';
 import { getProducts } from '../services/woocommerce';
 import { Product } from '../types';
 import ProductCard from '../components/ProductCard';
+import QuickViewModal from '../components/QuickViewModal';
 import { motion, AnimatePresence } from 'motion/react';
-import { Filter, X, ChevronDown, PanelRightClose, PanelRightOpen } from 'lucide-react';
+import { Filter, X, ChevronDown, PanelRightClose, PanelRightOpen, ChevronRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export default function Shop() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -15,6 +17,7 @@ export default function Shop() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [showFilters, setShowFilters] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const observer = useRef<IntersectionObserver | null>(null);
 
   const categoryFilter = searchParams.get('category') || '';
@@ -66,6 +69,10 @@ export default function Shop() {
       result.sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
     } else if (sortOrder === 'price-desc') {
       result.sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
+    } else if (sortOrder === 'newest') {
+      result.sort((a, b) => new Date(b.date_created).getTime() - new Date(a.date_created).getTime());
+    } else if (sortOrder === 'best-selling') {
+      result.sort((a, b) => (b.total_sales || 0) - (a.total_sales || 0));
     }
 
     return result;
@@ -112,6 +119,8 @@ export default function Shop() {
           className="w-full p-2 border border-primary/20 bg-transparent text-sm focus:outline-none focus:border-primary"
         >
           <option value="">Featured</option>
+          <option value="newest">Newest Arrivals</option>
+          <option value="best-selling">Best Selling</option>
           <option value="price-asc">Price: Low to High</option>
           <option value="price-desc">Price: High to Low</option>
         </select>
@@ -216,28 +225,34 @@ export default function Shop() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
+      <nav className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-primary/40 mb-4 flex-wrap">
+        <Link to="/" className="hover:text-primary transition-colors">Home</Link>
+        <ChevronRight size={14} />
+        <span className="text-primary">Shop</span>
+      </nav>
+
       <header className="space-y-4">
         <h1 className="text-5xl font-display font-black tracking-tighter uppercase">
           {categoryFilter ? categoryFilter.replace('-', ' ') : 'All Footwear'}
         </h1>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center justify-between">
           <p className="text-sm text-primary/60 uppercase tracking-widest">
-            {filteredProducts.length} Products Found
+            {filteredProducts.length} Pairs
           </p>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
             <button 
               onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center gap-2 text-sm font-bold uppercase tracking-widest hover:text-accent transition-colors lg:hidden"
+              className="flex items-center justify-center text-primary hover:text-accent transition-colors lg:hidden"
+              title="Filters & Sort"
             >
-              <Filter size={16} />
-              Filters & Sort
+              <Filter size={18} />
             </button>
             <button 
               onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-              className="hidden lg:flex items-center justify-center text-sm font-bold uppercase tracking-widest hover:text-accent transition-colors"
+              className="hidden lg:flex items-center justify-center text-primary hover:text-accent transition-colors"
               title={isSidebarCollapsed ? "Show Filters" : "Hide Filters"}
             >
-              {isSidebarCollapsed ? <PanelRightOpen size={20} /> : <PanelRightClose size={20} />}
+              {isSidebarCollapsed ? <PanelRightOpen size={18} /> : <PanelRightClose size={18} />}
             </button>
           </div>
         </div>
@@ -263,11 +278,11 @@ export default function Shop() {
                   if (filteredProducts.length === index + 1) {
                     return (
                       <div ref={lastProductElementRef} key={product.id}>
-                        <ProductCard product={product} />
+                        <ProductCard product={product} onQuickView={setQuickViewProduct} />
                       </div>
                     );
                   } else {
-                    return <ProductCard key={product.id} product={product} />;
+                    return <ProductCard key={product.id} product={product} onQuickView={setQuickViewProduct} />;
                   }
                 })}
               </div>
@@ -338,6 +353,16 @@ export default function Shop() {
           )}
         </AnimatePresence>
       </div>
+
+      {/* Quick View Modal */}
+      <AnimatePresence>
+        {quickViewProduct && (
+          <QuickViewModal 
+            product={quickViewProduct} 
+            onClose={() => setQuickViewProduct(null)} 
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

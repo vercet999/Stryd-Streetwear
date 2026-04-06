@@ -120,12 +120,19 @@ export default function Cart() {
 
   if (items.length === 0) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-24 text-center space-y-6">
-        <h1 className="text-4xl font-display font-black tracking-tighter">Your Cart is Empty</h1>
-        <p className="text-primary/60">Looks like you haven't added any items to your cart yet.</p>
-        <Link to="/shop" className="inline-block bg-primary text-base px-8 py-3 font-bold uppercase tracking-widest hover:bg-accent transition-colors">
-          Start Shopping
-        </Link>
+      <div className="max-w-7xl mx-auto px-4 py-24 text-center space-y-8">
+        <div className="space-y-4">
+          <h1 className="text-4xl font-display font-black tracking-tighter uppercase">Your Cart is Empty</h1>
+          <p className="text-primary/60">Looks like you haven't added any items to your cart yet.</p>
+        </div>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <Link to="/shop" className="w-full sm:w-auto bg-primary text-base px-8 py-4 font-bold uppercase tracking-widest hover:bg-accent transition-colors">
+            Start Shopping
+          </Link>
+          <Link to="/shop?sort=best-selling" className="w-full sm:w-auto bg-primary/5 text-primary border border-primary/10 px-8 py-4 font-bold uppercase tracking-widest hover:bg-primary hover:text-base transition-colors">
+            Shop Best Sellers
+          </Link>
+        </div>
       </div>
     );
   }

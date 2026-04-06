@@ -9,6 +9,7 @@ import ProductDetail from './pages/ProductDetail';
 import Contact from './pages/Contact';
 import Cart from './pages/Cart';
 import OrderSuccess from './pages/OrderSuccess';
+import ScrollToTopButton from './components/ScrollToTopButton';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -24,6 +25,7 @@ export default function App() {
   return (
     <Router>
       <ScrollToTop />
+      <ScrollToTopButton />
       <Toaster position="bottom-right" />
       <div className="min-h-screen flex flex-col">
         <Navbar />

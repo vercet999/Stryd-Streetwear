@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { getProductBySlug } from '../services/woocommerce';
 import { Product } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
-import { ChevronLeft, ShoppingCart, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ShoppingCart, X } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useCartStore } from '../store/cartStore';
 import { toast } from 'react-hot-toast';
@@ -18,6 +18,7 @@ export default function ProductDetail() {
   const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const addItem = useCartStore(state => state.addItem);
+  const navigate = useNavigate();
   const [zoomStyle, setZoomStyle] = useState<React.CSSProperties>({
     transformOrigin: 'center center',
     transform: 'scale(1)'
@@ -51,6 +52,21 @@ export default function ProductDetail() {
     }
   }, [slug]);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!product || product.images.length <= 1) return;
+      
+      if (e.key === 'ArrowLeft') {
+        setSelectedImage(prev => (prev > 0 ? prev - 1 : product.images.length - 1));
+      } else if (e.key === 'ArrowRight') {
+        setSelectedImage(prev => (prev < product.images.length - 1 ? prev + 1 : 0));
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [product]);
+
   if (loading) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-24 flex justify-center">
@@ -70,7 +86,7 @@ export default function ProductDetail() {
     );
   }
 
-  const handleAddToCart = () => {
+  const handleAddToCart = (redirect = false) => {
     if (!product) return;
     
     // If there are sizes/colors available, ensure they are selected
@@ -91,6 +107,9 @@ export default function ProductDetail() {
     });
     
     toast.success('Added to cart!');
+    if (redirect) {
+      navigate('/cart');
+    }
   };
 
   const sizes = product.attributes.find(a => a.name.toLowerCase() === 'size')?.options || [];
@@ -101,9 +120,19 @@ export default function ProductDetail() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-16">
-      <Link to="/shop" className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest mb-8 hover:text-accent transition-colors">
-        <ChevronLeft size={16} /> Back to Collection
-      </Link>
+      <nav className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-primary/40 mb-8 flex-wrap">
+        <Link to="/" className="hover:text-primary transition-colors">Home</Link>
+        <ChevronRight size={14} />
+        <Link to="/shop" className="hover:text-primary transition-colors">Shop</Link>
+        <ChevronRight size={14} />
+        {product.categories?.[0] && (
+          <>
+            <Link to={`/shop?category=${product.categories[0].slug}`} className="hover:text-primary transition-colors">{product.categories[0].name}</Link>
+            <ChevronRight size={14} />
+          </>
+        )}
+        <span className="text-primary">{product.name}</span>
+      </nav>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
         {/* Product Images - Tiffany Style */}
@@ -132,23 +161,25 @@ export default function ProductDetail() {
           )}
           
           {/* Main Image */}
-          <motion.div 
-            key={selectedImage}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.4 }}
-            className="aspect-square bg-[#0A0A0A]/5 dark:bg-[#F5F5F5] flex-1 min-w-0 rounded-[5px] overflow-hidden flex items-center justify-center order-1 md:order-2 relative cursor-crosshair"
+          <div className="aspect-square bg-[#0A0A0A]/5 dark:bg-[#F5F5F5] flex-1 min-w-0 rounded-[5px] overflow-hidden flex items-center justify-center order-1 md:order-2 relative cursor-crosshair"
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}
           >
-            <img 
-              src={product.images[selectedImage]?.src || product.images[0]?.src || 'https://stryd.visoirejewels.com/wp-content/uploads/2026/04/stryd-model-01.webp'} 
-              alt={product.name} 
-              className="w-full h-full object-contain mix-blend-multiply transition-transform duration-200 ease-out"
-              style={zoomStyle}
-              referrerPolicy="no-referrer"
-            />
-          </motion.div>
+            <AnimatePresence mode="wait">
+              <motion.img 
+                key={selectedImage}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+                src={product.images[selectedImage]?.src || product.images[0]?.src || 'https://stryd.visoirejewels.com/wp-content/uploads/2026/04/stryd-model-01.webp'} 
+                alt={product.name} 
+                className="w-full h-full object-contain mix-blend-multiply transition-transform duration-200 ease-out"
+                style={zoomStyle}
+                referrerPolicy="no-referrer"
+              />
+            </AnimatePresence>
+          </div>
         </div>
 
         {/* Product Info */}
@@ -241,11 +272,19 @@ export default function ProductDetail() {
           <div className="pt-6 space-y-4">
             <div className="flex gap-2">
               <button 
-                onClick={handleAddToCart}
+                onClick={() => handleAddToCart(true)}
                 disabled={product.stock_status === 'outofstock'}
-                className="w-full bg-primary text-base py-5 font-bold uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-accent transition-all shadow-xl shadow-primary/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 bg-primary text-base py-5 font-bold uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-accent transition-all shadow-xl shadow-primary/10 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 SECURE PAIR
+              </button>
+              <button 
+                onClick={() => handleAddToCart(false)}
+                disabled={product.stock_status === 'outofstock'}
+                className="w-[15%] min-w-[60px] bg-primary/5 text-primary border border-primary/10 py-5 flex items-center justify-center hover:bg-primary hover:text-base transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Add to Cart"
+              >
+                <ShoppingCart size={20} />
               </button>
             </div>
             <p className="text-[10px] text-center uppercase tracking-widest text-primary/40">
@@ -253,10 +292,10 @@ export default function ProductDetail() {
             </p>
           </div>
 
-          <div className="space-y-6 pt-8 border-t border-primary/10">
+          <div className="space-y-4 pt-4 border-t border-primary/10">
             {otherAttributes.length > 0 && (
               <div className="space-y-4">
-                <h3 className="text-xs font-bold uppercase tracking-widest">Details</h3>
+                <h3 className="text-xs font-bold uppercase tracking-widest">The Blueprint</h3>
                 <ul className="space-y-3 text-sm text-primary/70">
                   {otherAttributes.map(attr => (
                     <li key={attr.id} className="flex gap-4">
