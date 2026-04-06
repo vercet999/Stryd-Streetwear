@@ -1,39 +1,105 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { Trash2, Plus, Minus, ChevronLeft, ArrowRight } from 'lucide-react';
 import { usePaystackPayment } from 'react-paystack';
+import { toast } from 'react-hot-toast';
 import { useCartStore } from '../store/cartStore';
+import { createWooCommerceOrder, BillingInfo } from '../services/orderService';
 
 export default function Cart() {
   const { items, removeItem, updateQuantity, getTotalPrice, clearCart } = useCartStore();
+  const navigate = useNavigate();
   const subtotal = getTotalPrice();
   const deliveryFee = subtotal > 300 ? 0 : 20; // ₵20 flat rate if under ₵300
   const total = subtotal + deliveryFee;
 
+  const [billing, setBilling] = useState<BillingInfo>({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '+233',
+    address: '',
+    city: 'Accra'
+  });
+
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setBilling(prev => ({ ...prev, [name]: value }));
+  };
+
+  const isFormValid = () => {
+    return Object.values(billing).every(val => typeof val === 'string' && val.trim() !== '');
+  };
+
   const config = {
     reference: (new Date()).getTime().toString(),
-    email: "customer@example.com", // In a real app, get this from user input/auth
+    email: billing.email || "customer@example.com",
     amount: total * 100, // Paystack amount is in pesewas (kobo)
-    publicKey: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || '', // Replace with real public key
+    publicKey: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || '',
     currency: 'GHS',
   };
 
   const initializePayment = usePaystackPayment(config);
 
-  const onSuccess = (reference: any) => {
-    console.log(reference);
-    alert('Payment successful! Reference: ' + reference.reference);
-    clearCart();
+  const onSuccess = async (transaction: { reference: string }) => {
+    setIsProcessing(true);
+    const loadingToast = toast.loading('Confirming your order...');
+    
+    try {
+      // Map cart items to WooCommerce line_items format
+      const lineItems = items.map(item => ({
+        product_id: item.product.id,
+        quantity: item.quantity,
+        // If you have variations mapped, add variation_id here
+      }));
+
+      // Create the order in WooCommerce
+      const order = await createWooCommerceOrder(
+        billing,
+        lineItems,
+        transaction.reference,
+        total
+      );
+
+      toast.success('Order confirmed!', { id: loadingToast });
+      
+      // Clear the cart
+      clearCart();
+
+      // Navigate to a success page, passing the order details
+      navigate('/order-success', {
+        state: {
+          orderId: order.orderId,
+          orderNumber: order.orderNumber,
+          paystackRef: order.paystackRef,
+        }
+      });
+
+    } catch (error) {
+      console.error('Order creation failed:', error);
+      toast.error(
+        `Payment successful (ref: ${transaction.reference}) but order recording failed. Please contact us with this reference.`,
+        { id: loadingToast, duration: 8000 }
+      );
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const onClose = () => {
-    console.log('Payment closed');
+    toast('Payment cancelled');
   };
 
   const handleCheckout = () => {
     if (!config.publicKey) {
-      alert("Please configure your Paystack Public Key in the environment variables (VITE_PAYSTACK_PUBLIC_KEY).");
+      toast.error("Please configure your Paystack Public Key in the environment variables (VITE_PAYSTACK_PUBLIC_KEY).");
+      return;
+    }
+    if (!isFormValid()) {
+      toast.error("Please fill in all billing details.");
       return;
     }
     initializePayment({ onSuccess, onClose });
@@ -61,7 +127,7 @@ export default function Cart() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
         {/* Cart Items */}
-        <div className="lg:col-span-8 space-y-6">
+        <div className="lg:col-span-7 space-y-6">
           {items.map((item, index) => (
             <motion.div 
               key={`${item.product.id}-${item.size}-${item.color}-${index}`}
@@ -95,6 +161,7 @@ export default function Cart() {
                     <button 
                       onClick={() => updateQuantity(item.product.id, item.quantity - 1, item.size, item.color)}
                       className="p-2 hover:bg-primary/5 transition-colors"
+                      disabled={isProcessing}
                     >
                       <Minus size={14} />
                     </button>
@@ -102,6 +169,7 @@ export default function Cart() {
                     <button 
                       onClick={() => updateQuantity(item.product.id, item.quantity + 1, item.size, item.color)}
                       className="p-2 hover:bg-primary/5 transition-colors"
+                      disabled={isProcessing}
                     >
                       <Plus size={14} />
                     </button>
@@ -109,6 +177,7 @@ export default function Cart() {
                   <button 
                     onClick={() => removeItem(item.product.id, item.size, item.color)}
                     className="text-primary/40 hover:text-red-500 transition-colors p-2"
+                    disabled={isProcessing}
                   >
                     <Trash2 size={18} />
                   </button>
@@ -118,8 +187,89 @@ export default function Cart() {
           ))}
         </div>
 
-        {/* Order Summary */}
-        <div className="lg:col-span-4">
+        {/* Checkout Section */}
+        <div className="lg:col-span-5 space-y-8">
+          {/* Billing Form */}
+          <div className="bg-primary/5 p-6 rounded-[5px] space-y-6">
+            <h2 className="text-xl font-bold uppercase tracking-widest border-b border-primary/10 pb-4">Delivery Details</h2>
+            
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold uppercase tracking-widest text-primary/60">First Name</label>
+                  <input 
+                    type="text" 
+                    name="firstName"
+                    value={billing.firstName}
+                    onChange={handleInputChange}
+                    className="w-full bg-base border border-primary/20 rounded-[5px] px-4 py-2 text-sm focus:outline-none focus:border-primary transition-colors"
+                    required
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold uppercase tracking-widest text-primary/60">Last Name</label>
+                  <input 
+                    type="text" 
+                    name="lastName"
+                    value={billing.lastName}
+                    onChange={handleInputChange}
+                    className="w-full bg-base border border-primary/20 rounded-[5px] px-4 py-2 text-sm focus:outline-none focus:border-primary transition-colors"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold uppercase tracking-widest text-primary/60">Email</label>
+                <input 
+                  type="email" 
+                  name="email"
+                  value={billing.email}
+                  onChange={handleInputChange}
+                  className="w-full bg-base border border-primary/20 rounded-[5px] px-4 py-2 text-sm focus:outline-none focus:border-primary transition-colors"
+                  required
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold uppercase tracking-widest text-primary/60">Phone</label>
+                <input 
+                  type="tel" 
+                  name="phone"
+                  value={billing.phone}
+                  onChange={handleInputChange}
+                  className="w-full bg-base border border-primary/20 rounded-[5px] px-4 py-2 text-sm focus:outline-none focus:border-primary transition-colors"
+                  required
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold uppercase tracking-widest text-primary/60">Delivery Address</label>
+                <input 
+                  type="text" 
+                  name="address"
+                  value={billing.address}
+                  onChange={handleInputChange}
+                  className="w-full bg-base border border-primary/20 rounded-[5px] px-4 py-2 text-sm focus:outline-none focus:border-primary transition-colors"
+                  required
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold uppercase tracking-widest text-primary/60">City</label>
+                <input 
+                  type="text" 
+                  name="city"
+                  value={billing.city}
+                  onChange={handleInputChange}
+                  className="w-full bg-base border border-primary/20 rounded-[5px] px-4 py-2 text-sm focus:outline-none focus:border-primary transition-colors"
+                  required
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Order Summary */}
           <div className="bg-primary/5 p-6 rounded-[5px] space-y-6 sticky top-24">
             <h2 className="text-xl font-bold uppercase tracking-widest border-b border-primary/10 pb-4">Order Summary</h2>
             
@@ -148,13 +298,13 @@ export default function Cart() {
 
             <button 
               onClick={handleCheckout}
-              className="w-full bg-primary text-base py-4 font-bold uppercase tracking-[0.2em] flex items-center justify-center gap-2 hover:bg-accent transition-colors"
+              disabled={!isFormValid() || isProcessing}
+              className="w-full bg-primary text-base py-4 font-bold uppercase tracking-[0.2em] flex items-center justify-center gap-2 hover:bg-accent transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Checkout <ArrowRight size={18} />
+              {isProcessing ? 'Processing...' : 'Checkout'} <ArrowRight size={18} />
             </button>
             
             <div className="flex items-center justify-center gap-2 pt-4 opacity-50">
-              {/* Placeholder for payment method icons */}
               <span className="text-[10px] font-bold uppercase tracking-widest">Secured by Paystack</span>
             </div>
           </div>
