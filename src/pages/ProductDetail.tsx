@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { ChevronLeft, ShoppingCart, X } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useCartStore } from '../store/cartStore';
+import { toast } from 'react-hot-toast';
 
 export default function ProductDetail() {
   const { slug } = useParams<{ slug: string }>();
@@ -74,11 +75,11 @@ export default function ProductDetail() {
     
     // If there are sizes/colors available, ensure they are selected
     if (sizes.length > 0 && !selectedSize) {
-      alert('Please select a size');
+      toast.error('Please select a size');
       return;
     }
     if (colors.length > 0 && !selectedColor) {
-      alert('Please select a color');
+      toast.error('Please select a color');
       return;
     }
 
@@ -89,8 +90,7 @@ export default function ProductDetail() {
       color: selectedColor || undefined
     });
     
-    // Optional: show a success message or open cart drawer
-    alert('Added to cart!');
+    toast.success('Added to cart!');
   };
 
   const sizes = product.attributes.find(a => a.name.toLowerCase() === 'size')?.options || [];
@@ -270,7 +270,6 @@ export default function ProductDetail() {
 
             {product.description && (
               <div className="space-y-4">
-                <h3 className="text-xs font-bold uppercase tracking-widest">More Info</h3>
                 <div>
                   <div 
                     className={cn(

@@ -11,7 +11,9 @@ export default function Cart() {
   const { items, removeItem, updateQuantity, getTotalPrice, clearCart } = useCartStore();
   const navigate = useNavigate();
   const subtotal = getTotalPrice();
-  const deliveryFee = subtotal > 300 ? 0 : 20; // ₵20 flat rate if under ₵300
+  
+  const [isDelivery, setIsDelivery] = useState(true);
+  const deliveryFee = isDelivery ? (subtotal > 300 ? 0 : 20) : 0; // ₵20 flat rate if under ₵300 and delivery is selected
   const total = subtotal + deliveryFee;
 
   const [billing, setBilling] = useState<BillingInfo>({
@@ -31,7 +33,14 @@ export default function Cart() {
   };
 
   const isFormValid = () => {
-    return Object.values(billing).every(val => typeof val === 'string' && val.trim() !== '');
+    const requiredFields = isDelivery 
+      ? ['firstName', 'lastName', 'email', 'phone', 'address', 'city']
+      : ['firstName', 'lastName', 'email', 'phone'];
+      
+    return requiredFields.every(field => {
+      const val = billing[field as keyof BillingInfo];
+      return typeof val === 'string' && val.trim() !== '';
+    });
   };
 
   const config = {
@@ -58,7 +67,11 @@ export default function Cart() {
 
       // Create the order in WooCommerce
       const order = await createWooCommerceOrder(
-        billing,
+        {
+          ...billing,
+          address: isDelivery ? billing.address : 'Store Pickup',
+          city: isDelivery ? billing.city : 'N/A'
+        },
         lineItems,
         transaction.reference,
         total
@@ -125,9 +138,9 @@ export default function Cart() {
 
       <h1 className="text-3xl md:text-4xl font-display font-black tracking-tighter mb-12">Shopping Cart</h1>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
         {/* Cart Items */}
-        <div className="lg:col-span-7 space-y-6">
+        <div className="lg:col-span-7 space-y-6 lg:sticky lg:top-24">
           {items.map((item, index) => (
             <motion.div 
               key={`${item.product.id}-${item.size}-${item.color}-${index}`}
@@ -191,7 +204,20 @@ export default function Cart() {
         <div className="lg:col-span-5 space-y-8">
           {/* Billing Form */}
           <div className="bg-primary/5 p-6 rounded-[5px] space-y-6">
-            <h2 className="text-xl font-bold uppercase tracking-widest border-b border-primary/10 pb-4">Delivery Details</h2>
+            <div className="flex justify-between items-center border-b border-primary/10 pb-4">
+              <h2 className="text-xl font-bold uppercase tracking-widest">
+                {isDelivery ? 'Delivery Details' : 'Customer Details'}
+              </h2>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  checked={isDelivery}
+                  onChange={(e) => setIsDelivery(e.target.checked)}
+                  className="w-4 h-4 accent-primary"
+                />
+                <span className="text-xs font-bold uppercase tracking-widest text-primary/60">Need Delivery?</span>
+              </label>
+            </div>
             
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -243,34 +269,38 @@ export default function Cart() {
                 />
               </div>
 
-              <div className="space-y-1">
-                <label className="text-xs font-bold uppercase tracking-widest text-primary/60">Delivery Address</label>
-                <input 
-                  type="text" 
-                  name="address"
-                  value={billing.address}
-                  onChange={handleInputChange}
-                  className="w-full bg-base border border-primary/20 rounded-[5px] px-4 py-2 text-sm focus:outline-none focus:border-primary transition-colors"
-                  required
-                />
-              </div>
+              {isDelivery && (
+                <>
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold uppercase tracking-widest text-primary/60">Delivery Address</label>
+                    <input 
+                      type="text" 
+                      name="address"
+                      value={billing.address}
+                      onChange={handleInputChange}
+                      className="w-full bg-base border border-primary/20 rounded-[5px] px-4 py-2 text-sm focus:outline-none focus:border-primary transition-colors"
+                      required={isDelivery}
+                    />
+                  </div>
 
-              <div className="space-y-1">
-                <label className="text-xs font-bold uppercase tracking-widest text-primary/60">City</label>
-                <input 
-                  type="text" 
-                  name="city"
-                  value={billing.city}
-                  onChange={handleInputChange}
-                  className="w-full bg-base border border-primary/20 rounded-[5px] px-4 py-2 text-sm focus:outline-none focus:border-primary transition-colors"
-                  required
-                />
-              </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold uppercase tracking-widest text-primary/60">City</label>
+                    <input 
+                      type="text" 
+                      name="city"
+                      value={billing.city}
+                      onChange={handleInputChange}
+                      className="w-full bg-base border border-primary/20 rounded-[5px] px-4 py-2 text-sm focus:outline-none focus:border-primary transition-colors"
+                      required={isDelivery}
+                    />
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
           {/* Order Summary */}
-          <div className="bg-primary/5 p-6 rounded-[5px] space-y-6 sticky top-24">
+          <div className="bg-primary/5 p-6 rounded-[5px] space-y-6">
             <h2 className="text-xl font-bold uppercase tracking-widest border-b border-primary/10 pb-4">Order Summary</h2>
             
             <div className="space-y-3 text-sm">
@@ -281,10 +311,10 @@ export default function Cart() {
               <div className="flex justify-between">
                 <span className="text-primary/70">Delivery</span>
                 <span className="font-bold">
-                  {deliveryFee === 0 ? 'Free' : `₵${deliveryFee.toFixed(2)}`}
+                  {!isDelivery ? 'Store Pickup' : (deliveryFee === 0 ? 'Free' : `₵${deliveryFee.toFixed(2)}`)}
                 </span>
               </div>
-              {deliveryFee > 0 && (
+              {isDelivery && deliveryFee > 0 && (
                 <p className="text-[10px] text-primary/50 text-right">
                   Add ₵{(300 - subtotal).toFixed(2)} more for free delivery
                 </p>
