@@ -13,7 +13,7 @@ export default function ProductCard({ product, onQuickView }: { product: Product
       className="group"
     >
       <div className="block space-y-4 relative">
-        <Link to={`/product/${product.slug}`} className="block aspect-square overflow-hidden bg-[#0A0A0A]/5 dark:bg-[#F5F5F5] relative rounded-[5px]">
+        <Link to={`/piece/${product.slug}`} className="block aspect-square overflow-hidden bg-[#0A0A0A]/5 dark:bg-[#F5F5F5] relative rounded-[5px]">
           <img
             src={product.images[0]?.src || 'https://stryd.visoirejewels.com/wp-content/uploads/2026/04/stryd-model-01.webp'}
             alt={product.images[0]?.alt || product.name}
@@ -62,7 +62,7 @@ export default function ProductCard({ product, onQuickView }: { product: Product
           </div>
         )}
         
-        <Link to={`/product/${product.slug}`} className="block space-y-1">
+        <Link to={`/piece/${product.slug}`} className="block space-y-1">
           <h3 className="text-sm font-bold uppercase tracking-tight group-hover:text-accent transition-colors">
             {product.name}
           </h3>

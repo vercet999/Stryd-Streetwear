@@ -141,7 +141,7 @@ export default function QuickViewModal({ product, onClose }: { product: Product;
               {product.stock_status === 'outofstock' ? 'SOLD OUT' : 'ADD TO CART'}
             </button>
             <Link 
-              to={`/product/${product.slug}`}
+              to={`/piece/${product.slug}`}
               onClick={onClose}
               className="block text-center text-xs font-bold uppercase tracking-widest text-primary/60 hover:text-primary transition-colors underline underline-offset-4"
             >

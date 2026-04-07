@@ -15,6 +15,7 @@ async function startServer() {
 
     const page = req.query.page || 1;
     const per_page = req.query.per_page || 20;
+    const slug = req.query.slug;
 
     if (!WC_URL || !WC_KEY || !WC_SECRET) {
       return res.status(500).json({ error: "WooCommerce credentials missing" });
@@ -22,7 +23,12 @@ async function startServer() {
 
     try {
       const auth = Buffer.from(`${WC_KEY}:${WC_SECRET}`).toString('base64');
-      const response = await fetch(`${WC_URL}/wp-json/wc/v3/products?page=${page}&per_page=${per_page}`, {
+      let url = `${WC_URL}/wp-json/wc/v3/products?page=${page}&per_page=${per_page}`;
+      if (slug) {
+        url += `&slug=${slug}`;
+      }
+      
+      const response = await fetch(url, {
         headers: {
           'Authorization': `Basic ${auth}`
         }

@@ -141,7 +141,7 @@ export default function Home() {
             {/* Large item */}
             {topSellers[0] && (
               <div className="lg:col-span-8 group cursor-pointer relative">
-                <Link to={`/product/${topSellers[0].slug}`} className="block h-full">
+                <Link to={`/piece/${topSellers[0].slug}`} className="block h-full">
                   <div className="h-full min-h-[400px] lg:min-h-[600px] overflow-hidden bg-[#0A0A0A]/5 dark:bg-[#F5F5F5] relative rounded-[5px] flex items-center justify-center p-12">
                     <img 
                       src={topSellers[0].images[0]?.src} 
@@ -171,7 +171,7 @@ export default function Home() {
             <div className="lg:col-span-4 flex flex-col gap-6 md:gap-8">
               {topSellers.slice(1, 3).map((product, idx) => (
                 <div key={product.id} className="flex-1 group cursor-pointer relative">
-                  <Link to={`/product/${product.slug}`} className="block h-full">
+                  <Link to={`/piece/${product.slug}`} className="block h-full">
                     <div className="h-full min-h-[250px] overflow-hidden bg-[#0A0A0A]/5 dark:bg-[#F5F5F5] relative rounded-[5px] flex items-center justify-center p-8">
                       <img 
                         src={product.images[0]?.src} 

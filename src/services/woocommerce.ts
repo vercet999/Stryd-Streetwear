@@ -219,6 +219,28 @@ export async function searchAllProducts(query: string): Promise<Product[]> {
 }
 
 export async function getProductBySlug(slug: string): Promise<Product | undefined> {
-  const products = await getProducts();
-  return products.find(p => p.slug === slug);
+  try {
+    const response = await fetch(`/api/products?slug=${slug}`);
+    
+    if (!response.ok) {
+      console.warn('Backend API failed. Using mock data.');
+      return MOCK_PRODUCTS.find(p => p.slug === slug);
+    }
+
+    const data = await response.json();
+    if (data.error) {
+      console.warn('Backend API error:', data.error);
+      return MOCK_PRODUCTS.find(p => p.slug === slug);
+    }
+    
+    // WooCommerce returns an array even when querying by slug
+    if (data && data.length > 0) {
+      return data[0];
+    }
+    
+    return undefined;
+  } catch (error) {
+    console.error('Error fetching product by slug:', error);
+    return MOCK_PRODUCTS.find(p => p.slug === slug);
+  }
 }

@@ -220,7 +220,7 @@ export default function Navbar() {
                       {suggestions.map((product) => (
                         <li key={product.id}>
                           <Link
-                            to={`/product/${product.slug}`}
+                            to={`/piece/${product.slug}`}
                             onClick={() => {
                               setShowSuggestions(false);
                               setSearchQuery('');
@@ -308,7 +308,7 @@ export default function Navbar() {
                         {suggestions.map((product) => (
                           <li key={product.id}>
                             <Link
-                              to={`/product/${product.slug}`}
+                              to={`/piece/${product.slug}`}
                               onClick={() => {
                                 setShowSuggestions(false);
                                 setSearchQuery('');
