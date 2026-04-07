@@ -5,8 +5,16 @@
     <link rel="icon" type="image/svg+xml" href="/assets/favicon/stryd-favicon.svg" />
     <link rel="apple-touch-icon" href="https://stryd.visoirejewels.com/wp-content/uploads/2026/04/apple-touch-icon.png" />
     <link rel="manifest" href="/assets/favicon/site.webmanifest" />
+    <link rel="preload" href="/assets/loader/stryd-loader.svg" as="image" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>STRYD GH — Streetwear Footwear</title>
+    <script>
+      if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

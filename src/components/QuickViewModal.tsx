@@ -142,6 +142,7 @@ export default function QuickViewModal({ product, onClose }: { product: Product;
             </button>
             <Link 
               to={`/product/${product.slug}`}
+              onClick={onClose}
               className="block text-center text-xs font-bold uppercase tracking-widest text-primary/60 hover:text-primary transition-colors underline underline-offset-4"
             >
               View Full Details

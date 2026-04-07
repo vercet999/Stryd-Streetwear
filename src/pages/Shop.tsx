@@ -4,6 +4,7 @@ import { getProducts } from '../services/woocommerce';
 import { Product } from '../types';
 import ProductCard from '../components/ProductCard';
 import QuickViewModal from '../components/QuickViewModal';
+import LoadingSpinner from '../components/LoadingSpinner';
 import { motion, AnimatePresence } from 'motion/react';
 import { Filter, X, ChevronDown, PanelRightClose, PanelRightOpen, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -24,15 +25,16 @@ export default function Shop() {
   const brandFilter = searchParams.get('brand') || '';
   const colorFilter = searchParams.get('color') || '';
   const sortOrder = searchParams.get('sort') || '';
+  const searchFilter = searchParams.get('search') || '';
 
   useEffect(() => {
     const fetchProducts = async () => {
       if (page === 1) setLoading(true);
       else setLoadingMore(true);
 
-      const newProducts = await getProducts(page, 20);
+      const newProducts = await getProducts(page, 10);
       
-      if (newProducts.length < 20) {
+      if (newProducts.length < 10) {
         setHasMore(false);
       }
 
@@ -52,6 +54,11 @@ export default function Shop() {
 
   const filteredProducts = useMemo(() => {
     let result = [...products];
+
+    if (searchFilter) {
+      const lowerSearch = searchFilter.toLowerCase();
+      result = result.filter(p => p.name.toLowerCase().includes(lowerSearch));
+    }
 
     if (categoryFilter) {
       result = result.filter(p => p.categories.some(c => c.slug === categoryFilter));
@@ -106,55 +113,60 @@ export default function Shop() {
   }, [loading, loadingMore, hasMore]);
 
   const FilterContent = () => (
-    <div className="space-y-6 w-full lg:w-60">
+    <div className="space-y-2 w-full lg:w-60">
       {/* Sort */}
-      <details className="group" open>
-        <summary className="flex items-center justify-between cursor-pointer list-none text-sm font-bold uppercase tracking-widest mb-3 [&::-webkit-details-marker]:hidden">
-          Sort By
-          <ChevronDown size={16} className="transition-transform group-open:rotate-180" />
+      <details className="group border-b border-primary/10 pb-4" open>
+        <summary className="flex items-center justify-between cursor-pointer list-none text-sm font-bold uppercase tracking-widest mb-4 [&::-webkit-details-marker]:hidden">
+          <span className="flex items-center gap-2">
+            Sort By
+            {sortOrder && <span className="w-1.5 h-1.5 rounded-full bg-accent" />}
+          </span>
+          <ChevronDown size={16} className="transition-transform group-open:rotate-180 text-primary/40 group-hover:text-primary" />
         </summary>
-        <select 
-          value={sortOrder}
-          onChange={(e) => updateFilter('sort', e.target.value)}
-          className="w-full p-2 border border-primary/20 bg-transparent text-sm focus:outline-none focus:border-primary"
-        >
-          <option value="">Featured</option>
-          <option value="newest">Newest Arrivals</option>
-          <option value="best-selling">Best Selling</option>
-          <option value="price-asc">Price: Low to High</option>
-          <option value="price-desc">Price: High to Low</option>
-        </select>
+        <div className="space-y-3">
+          {[
+            { value: '', label: 'Featured' },
+            { value: 'newest', label: 'Newest Arrivals' },
+            { value: 'best-selling', label: 'Best Selling' },
+            { value: 'price-asc', label: 'Price: Low to High' },
+            { value: 'price-desc', label: 'Price: High to Low' },
+          ].map(option => (
+            <button
+              key={option.value}
+              onClick={() => updateFilter('sort', option.value)}
+              className={`block w-full text-left text-sm transition-colors ${sortOrder === option.value ? 'font-bold text-primary' : 'text-primary/60 hover:text-primary'}`}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
       </details>
 
       {/* Categories */}
       {categories.length > 0 && (
-        <details className="group" open>
-          <summary className="flex items-center justify-between cursor-pointer list-none text-sm font-bold uppercase tracking-widest mb-3 [&::-webkit-details-marker]:hidden">
-            Category
-            <ChevronDown size={16} className="transition-transform group-open:rotate-180" />
+        <details className="group border-b border-primary/10 py-4" open>
+          <summary className="flex items-center justify-between cursor-pointer list-none text-sm font-bold uppercase tracking-widest mb-4 [&::-webkit-details-marker]:hidden">
+            <span className="flex items-center gap-2">
+              Category
+              {categoryFilter && <span className="w-1.5 h-1.5 rounded-full bg-accent" />}
+            </span>
+            <ChevronDown size={16} className="transition-transform group-open:rotate-180 text-primary/40 group-hover:text-primary" />
           </summary>
-          <div className="space-y-2">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input 
-                type="radio" 
-                name="category" 
-                checked={categoryFilter === ''}
-                onChange={() => updateFilter('category', '')}
-                className="accent-primary"
-              />
-              <span className="text-sm">All Categories</span>
-            </label>
+          <div className="space-y-3">
+            <button
+              onClick={() => updateFilter('category', '')}
+              className={`block w-full text-left text-sm transition-colors ${categoryFilter === '' ? 'font-bold text-primary' : 'text-primary/60 hover:text-primary'}`}
+            >
+              All Categories
+            </button>
             {categories.map(cat => (
-              <label key={cat} className="flex items-center gap-2 cursor-pointer">
-                <input 
-                  type="radio" 
-                  name="category" 
-                  checked={categoryFilter === cat}
-                  onChange={() => updateFilter('category', cat)}
-                  className="accent-primary"
-                />
-                <span className="text-sm capitalize">{cat.replace('-', ' ')}</span>
-              </label>
+              <button
+                key={cat}
+                onClick={() => updateFilter('category', cat)}
+                className={`block w-full text-left text-sm capitalize transition-colors ${categoryFilter === cat ? 'font-bold text-primary' : 'text-primary/60 hover:text-primary'}`}
+              >
+                {cat.replace('-', ' ')}
+              </button>
             ))}
           </div>
         </details>
@@ -162,33 +174,29 @@ export default function Shop() {
 
       {/* Brands */}
       {brands.length > 0 && (
-        <details className="group" open>
-          <summary className="flex items-center justify-between cursor-pointer list-none text-sm font-bold uppercase tracking-widest mb-3 [&::-webkit-details-marker]:hidden">
-            Brand
-            <ChevronDown size={16} className="transition-transform group-open:rotate-180" />
+        <details className="group border-b border-primary/10 py-4" open>
+          <summary className="flex items-center justify-between cursor-pointer list-none text-sm font-bold uppercase tracking-widest mb-4 [&::-webkit-details-marker]:hidden">
+            <span className="flex items-center gap-2">
+              Brand
+              {brandFilter && <span className="w-1.5 h-1.5 rounded-full bg-accent" />}
+            </span>
+            <ChevronDown size={16} className="transition-transform group-open:rotate-180 text-primary/40 group-hover:text-primary" />
           </summary>
-          <div className="space-y-2">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input 
-                type="radio" 
-                name="brand" 
-                checked={brandFilter === ''}
-                onChange={() => updateFilter('brand', '')}
-                className="accent-primary"
-              />
-              <span className="text-sm">All Brands</span>
-            </label>
+          <div className="space-y-3">
+            <button
+              onClick={() => updateFilter('brand', '')}
+              className={`block w-full text-left text-sm transition-colors ${brandFilter === '' ? 'font-bold text-primary' : 'text-primary/60 hover:text-primary'}`}
+            >
+              All Brands
+            </button>
             {brands.map(brand => (
-              <label key={brand} className="flex items-center gap-2 cursor-pointer">
-                <input 
-                  type="radio" 
-                  name="brand" 
-                  checked={brandFilter === brand}
-                  onChange={() => updateFilter('brand', brand)}
-                  className="accent-primary"
-                />
-                <span className="text-sm capitalize">{brand.replace('-', ' ')}</span>
-              </label>
+              <button
+                key={brand}
+                onClick={() => updateFilter('brand', brand)}
+                className={`block w-full text-left text-sm capitalize transition-colors ${brandFilter === brand ? 'font-bold text-primary' : 'text-primary/60 hover:text-primary'}`}
+              >
+                {brand.replace('-', ' ')}
+              </button>
             ))}
           </div>
         </details>
@@ -196,15 +204,18 @@ export default function Shop() {
 
       {/* Colors */}
       {colors.length > 0 && (
-        <details className="group" open>
-          <summary className="flex items-center justify-between cursor-pointer list-none text-sm font-bold uppercase tracking-widest mb-3 [&::-webkit-details-marker]:hidden">
-            Color
-            <ChevronDown size={16} className="transition-transform group-open:rotate-180" />
+        <details className="group py-4" open>
+          <summary className="flex items-center justify-between cursor-pointer list-none text-sm font-bold uppercase tracking-widest mb-4 [&::-webkit-details-marker]:hidden">
+            <span className="flex items-center gap-2">
+              Color
+              {colorFilter && <span className="w-1.5 h-1.5 rounded-full bg-accent" />}
+            </span>
+            <ChevronDown size={16} className="transition-transform group-open:rotate-180 text-primary/40 group-hover:text-primary" />
           </summary>
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => updateFilter('color', '')}
-              className={`px-3 py-1 text-xs border ${colorFilter === '' ? 'bg-primary text-base border-primary' : 'border-primary/20 hover:border-primary'} transition-colors`}
+              className={`px-3 py-1.5 text-xs border ${colorFilter === '' ? 'bg-primary text-base border-primary font-bold' : 'border-primary/20 hover:border-primary text-primary/60 hover:text-primary'} transition-colors`}
             >
               All
             </button>
@@ -212,7 +223,7 @@ export default function Shop() {
               <button
                 key={color}
                 onClick={() => updateFilter('color', color)}
-                className={`px-3 py-1 text-xs border ${colorFilter.toLowerCase() === color.toLowerCase() ? 'bg-primary text-base border-primary' : 'border-primary/20 hover:border-primary'} transition-colors`}
+                className={`px-3 py-1.5 text-xs border ${colorFilter.toLowerCase() === color.toLowerCase() ? 'bg-primary text-base border-primary font-bold' : 'border-primary/20 hover:border-primary text-primary/60 hover:text-primary'} transition-colors`}
               >
                 {color}
               </button>
@@ -262,20 +273,15 @@ export default function Shop() {
         {/* Product Grid */}
         <div className="flex-1">
           {loading ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-12">
-              {[1, 2, 3, 4, 5, 6].map(i => (
-                <div key={i} className="space-y-4 animate-pulse">
-                  <div className="aspect-square bg-primary/5 rounded-[5px]" />
-                  <div className="h-4 bg-primary/5 w-3/4" />
-                  <div className="h-4 bg-primary/5 w-1/4" />
-                </div>
-              ))}
+            <div className="min-h-[50vh] flex items-center justify-center">
+              <LoadingSpinner className="w-14 h-14" />
             </div>
           ) : (
             <>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-12">
                 {filteredProducts.map((product, index) => {
-                  if (filteredProducts.length === index + 1) {
+                  const triggerIndex = Math.max(0, filteredProducts.length - 5);
+                  if (index === triggerIndex) {
                     return (
                       <div ref={lastProductElementRef} key={product.id}>
                         <ProductCard product={product} onQuickView={setQuickViewProduct} />
@@ -288,11 +294,7 @@ export default function Shop() {
               </div>
               {loadingMore && (
                 <div className="py-12 flex justify-center">
-                  <div className="animate-pulse flex space-x-2">
-                    <div className="h-2 w-2 bg-primary rounded-full"></div>
-                    <div className="h-2 w-2 bg-primary rounded-full"></div>
-                    <div className="h-2 w-2 bg-primary rounded-full"></div>
-                  </div>
+                  <LoadingSpinner className="w-8 h-8" />
                 </div>
               )}
             </>
@@ -314,7 +316,7 @@ export default function Shop() {
         </div>
 
         {/* Desktop Filters Sidebar */}
-        <div className={`hidden lg:block ${isSidebarCollapsed ? 'lg:w-0 lg:pl-0 lg:opacity-0 lg:overflow-hidden' : 'lg:w-64 lg:pl-4 lg:opacity-100'} transition-all duration-300 ease-in-out flex-shrink-0 lg:sticky lg:top-24 h-fit max-h-[calc(100vh-6rem)] overflow-y-auto`}>
+        <div className={`hidden lg:block ${isSidebarCollapsed ? 'lg:w-0 lg:pl-0 lg:opacity-0 lg:overflow-hidden' : 'lg:w-64 lg:pl-4 lg:opacity-100'} transition-all duration-300 ease-in-out flex-shrink-0 lg:sticky lg:top-24 h-fit max-h-[calc(100vh-6rem)] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]`}>
           <FilterContent />
         </div>
 
@@ -345,7 +347,7 @@ export default function Shop() {
                     <X size={20} />
                   </button>
                 </div>
-                <div className="p-6 overflow-y-auto flex-1">
+                <div className="p-6 overflow-y-auto flex-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                   <FilterContent />
                 </div>
               </motion.div>

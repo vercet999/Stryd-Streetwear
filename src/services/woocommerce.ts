@@ -185,6 +185,39 @@ export async function getProducts(page: number = 1, per_page: number = 20): Prom
   }
 }
 
+export async function searchAllProducts(query: string): Promise<Product[]> {
+  // Fetch a larger batch of products for client-side searching
+  // In a real app with thousands of products, this would be handled by a dedicated search backend (like Algolia or ElasticSearch)
+  const allProducts = await getProducts(1, 100);
+  
+  if (!query) return [];
+  
+  const lowerQuery = query.toLowerCase();
+  
+  return allProducts.filter(product => {
+    // Match Name
+    if (product.name.toLowerCase().includes(lowerQuery)) return true;
+    
+    // Match Description
+    if (product.description?.toLowerCase().includes(lowerQuery)) return true;
+    if (product.short_description?.toLowerCase().includes(lowerQuery)) return true;
+    
+    // Match Categories
+    if (product.categories?.some(c => c.name.toLowerCase().includes(lowerQuery))) return true;
+    
+    // Match Brands
+    if (product.brands?.some(b => b.name.toLowerCase().includes(lowerQuery))) return true;
+    
+    // Match Attributes (e.g., Color, Size)
+    if (product.attributes?.some(attr => 
+      attr.name.toLowerCase().includes(lowerQuery) || 
+      attr.options.some(opt => opt.toLowerCase().includes(lowerQuery))
+    )) return true;
+    
+    return false;
+  });
+}
+
 export async function getProductBySlug(slug: string): Promise<Product | undefined> {
   const products = await getProducts();
   return products.find(p => p.slug === slug);

@@ -3,10 +3,11 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { getProductBySlug } from '../services/woocommerce';
 import { Product } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
-import { ChevronLeft, ChevronRight, ShoppingCart, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ShoppingCart, X, Facebook, Twitter, Link2 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useCartStore } from '../store/cartStore';
 import { toast } from 'react-hot-toast';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 export default function ProductDetail() {
   const { slug } = useParams<{ slug: string }>();
@@ -69,8 +70,8 @@ export default function ProductDetail() {
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-24 flex justify-center">
-        <div className="w-12 h-12 border-4 border-primary/10 border-t-accent rounded-full animate-spin" />
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <LoadingSpinner className="w-14 h-14" />
       </div>
     );
   }
@@ -109,6 +110,36 @@ export default function ProductDetail() {
     toast.success('Added to cart!');
     if (redirect) {
       navigate('/cart');
+    }
+  };
+
+  const handleShare = (platform: string) => {
+    if (!product) return;
+    const shareUrl = window.location.href;
+    const shareText = `Check out ${product.name} on STRYD GH`;
+    const shareImage = product.images[0]?.src || '';
+    let url = '';
+
+    switch (platform) {
+      case 'whatsapp':
+        url = `https://wa.me/?text=${encodeURIComponent(shareText + ' ' + shareUrl)}`;
+        break;
+      case 'twitter':
+        url = `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`;
+        break;
+      case 'facebook':
+        url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
+        break;
+      case 'pinterest':
+        url = `https://pinterest.com/pin/create/button/?url=${encodeURIComponent(shareUrl)}&media=${encodeURIComponent(shareImage)}&description=${encodeURIComponent(shareText)}`;
+        break;
+      case 'copy':
+        navigator.clipboard.writeText(shareUrl);
+        toast.success('Link copied to clipboard!');
+        return;
+    }
+    if (url) {
+      window.open(url, '_blank', 'width=600,height=400');
     }
   };
 
@@ -290,6 +321,31 @@ export default function ProductDetail() {
             <p className="text-[10px] text-center uppercase tracking-widest text-primary/40">
               Free delivery on all orders over ₵300.
             </p>
+          </div>
+
+          {/* Social Share */}
+          <div className="pt-6 pb-2 space-y-4 border-t border-primary/10">
+            <h3 className="text-xs font-bold uppercase tracking-widest">Share</h3>
+            <div className="flex flex-wrap gap-3">
+              <button onClick={() => handleShare('whatsapp')} className="w-10 h-10 flex items-center justify-center border border-primary/10 hover:border-primary text-primary/60 hover:text-primary transition-all" title="Share on WhatsApp">
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+              </button>
+              <button onClick={() => handleShare('instagram')} className="w-10 h-10 flex items-center justify-center border border-primary/10 hover:border-primary text-primary/60 hover:text-primary transition-all" title="Share on Instagram">
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+              </button>
+              <button onClick={() => handleShare('twitter')} className="w-10 h-10 flex items-center justify-center border border-primary/10 hover:border-primary text-primary/60 hover:text-primary transition-all" title="Share on Twitter">
+                <Twitter size={18} />
+              </button>
+              <button onClick={() => handleShare('facebook')} className="w-10 h-10 flex items-center justify-center border border-primary/10 hover:border-primary text-primary/60 hover:text-primary transition-all" title="Share on Facebook">
+                <Facebook size={18} />
+              </button>
+              <button onClick={() => handleShare('pinterest')} className="w-10 h-10 flex items-center justify-center border border-primary/10 hover:border-primary text-primary/60 hover:text-primary transition-all" title="Share on Pinterest">
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2C6.5 2 2 6.5 2 12c0 4.3 2.7 8 6.5 9.5-.1-1-.2-2.5 0-3.6.2-.9 1.4-5.8 1.4-5.8s-.3-.7-.3-1.7c0-1.6.9-2.8 2.1-2.8 1 0 1.5.8 1.5 1.7 0 1-.6 2.6-.9 4-.3 1.2.6 2.2 1.8 2.2 2.2 0 3.8-2.3 3.8-5.6 0-2.9-2.1-4.9-5-4.9-3.4 0-5.4 2.5-5.4 5.2 0 1 .4 2.1.9 2.7.1.1.1.2.1.3-.1.4-.3 1.2-.3 1.3-.1.2-.2.3-.4.2-1.5-.7-2.4-2.9-2.4-4.6 0-3.8 2.7-7.2 7.9-7.2 4.2 0 7.4 3 7.4 7 0 4.1-2.6 7.5-6.2 7.5-1.2 0-2.4-.6-2.8-1.4 0 0-.6 2.3-.8 2.9-.2.8-.8 1.8-1.2 2.4 1.1.3 2.3.5 3.5.5 5.5 0 10-4.5 10-10S17.5 2 12 2z"></path></svg>
+              </button>
+              <button onClick={() => handleShare('copy')} className="w-10 h-10 flex items-center justify-center border border-primary/10 hover:border-primary text-primary/60 hover:text-primary transition-all" title="Copy Link">
+                <Link2 size={18} />
+              </button>
+            </div>
           </div>
 
           <div className="space-y-4 pt-4 border-t border-primary/10">
