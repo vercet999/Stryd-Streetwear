@@ -5,18 +5,21 @@ export default async function handler(req, res) {
 
   const page = req.query.page || 1;
   const per_page = req.query.per_page || 20;
+  const slug = req.query.slug;
 
   const auth = Buffer.from(`${WC_KEY}:${WC_SECRET}`).toString('base64');
 
   try {
-    const response = await fetch(
-      `${WC_URL}/wp-json/wc/v3/products?page=${page}&per_page=${per_page}`,
-      {
-        headers: {
-          Authorization: `Basic ${auth}`,
-        },
-      }
-    );
+    let url = `${WC_URL}/wp-json/wc/v3/products?page=${page}&per_page=${per_page}`;
+    if (slug) {
+      url += `&slug=${slug}`;
+    }
+
+    const response = await fetch(url, {
+      headers: {
+        Authorization: `Basic ${auth}`,
+      },
+    });
 
     const data = await response.json();
     res.status(200).json(data);
