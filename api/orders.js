@@ -37,9 +37,10 @@ export default async function handler(req, res) {
     const WC_URL    = process.env.WC_URL;
     const WC_KEY    = process.env.WC_KEY;
     const WC_SECRET = process.env.WC_SECRET;
+    const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY;
 
-    if (!WC_URL || !WC_KEY || !WC_SECRET) {
-        return res.status(500).json({ error: 'Server configuration error. WooCommerce credentials missing.' });
+    if (!WC_URL || !WC_KEY || !WC_SECRET || !PAYSTACK_SECRET_KEY) {
+        return res.status(500).json({ error: 'Server configuration error. Credentials missing.' });
     }
 
     // ── Parse the request body ────────────────────────────────────────────────
@@ -53,6 +54,37 @@ export default async function handler(req, res) {
     // Basic validation
     if (!billing || !lineItems || !lineItems.length || !paystackRef) {
         return res.status(400).json({ error: 'Missing required order data.' });
+    }
+
+    // ── Verify Payment with Paystack (CRITICAL SECURITY FIX) ──────────────────
+    try {
+        const verifyResponse = await fetch(`https://api.paystack.co/transaction/verify/${paystackRef}`, {
+            method: 'GET',
+            headers: {
+                Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`
+            }
+        });
+
+        const verifyData = await verifyResponse.json();
+
+        if (!verifyResponse.ok || !verifyData.status || verifyData.data.status !== 'success') {
+            console.error('Paystack verification failed:', verifyData);
+            return res.status(400).json({ error: 'Payment verification failed. Cannot create order.' });
+        }
+
+        // Verify the amount matches what we expect (in pesewas)
+        // Paystack returns amount in pesewas. We compare it to the paystackAmount sent by the client.
+        // In a fully secure system, the backend should calculate the expected amount independently 
+        // based on the lineItems, rather than trusting the client's paystackAmount.
+        // For now, we at least ensure the transaction amount matches the claimed amount.
+        if (verifyData.data.amount < paystackAmount) {
+            console.error(`Amount mismatch. Expected at least ${paystackAmount}, got ${verifyData.data.amount}`);
+            return res.status(400).json({ error: 'Payment amount verification failed.' });
+        }
+
+    } catch (error) {
+        console.error('Error verifying Paystack payment:', error);
+        return res.status(500).json({ error: 'Internal server error during payment verification.' });
     }
 
     // ── Build the WooCommerce order payload ───────────────────────────────────

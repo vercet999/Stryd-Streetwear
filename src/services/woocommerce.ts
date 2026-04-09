@@ -1,4 +1,5 @@
 import { Product } from '../types';
+import { toast } from 'react-hot-toast';
 
 // Mock data for development if API keys are missing
 const MOCK_PRODUCTS: Product[] = [
@@ -169,12 +170,14 @@ export async function getProducts(page: number = 1, per_page: number = 20): Prom
     
     if (!response.ok) {
       console.warn('Backend API failed or missing credentials. Using mock data.');
+      toast.error('Failed to connect to store. Showing preview data.', { id: 'api-error' });
       return MOCK_PRODUCTS;
     }
 
     const data = await response.json();
     if (data.error) {
       console.warn('Backend API error:', data.error);
+      toast.error(`Store error: ${data.error}`, { id: 'api-error' });
       return MOCK_PRODUCTS;
     }
     
@@ -224,12 +227,14 @@ export async function getProductBySlug(slug: string): Promise<Product | undefine
     
     if (!response.ok) {
       console.warn('Backend API failed. Using mock data.');
+      toast.error('Failed to connect to store. Showing preview data.', { id: 'api-error' });
       return MOCK_PRODUCTS.find(p => p.slug === slug);
     }
 
     const data = await response.json();
     if (data.error) {
       console.warn('Backend API error:', data.error);
+      toast.error(`Store error: ${data.error}`, { id: 'api-error' });
       return MOCK_PRODUCTS.find(p => p.slug === slug);
     }
     

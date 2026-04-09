@@ -13,7 +13,7 @@ export default function Cart() {
   const subtotal = getTotalPrice();
   
   const [isDelivery, setIsDelivery] = useState(true);
-  const deliveryFee = isDelivery ? 50 : 0; // ₵50 flat rate
+  const deliveryFee = 0; // Calculated after order
   const total = subtotal + deliveryFee;
 
   const [billing, setBilling] = useState<BillingInfo>({
@@ -91,10 +91,10 @@ export default function Cart() {
         }
       });
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Order creation failed:', error);
       toast.error(
-        `Payment successful (ref: ${transaction.reference}) but order recording failed. Please contact us with this reference.`,
+        `Payment successful but order recording failed: ${error.message}. Please contact support with reference ${transaction.reference}.`,
         { id: loadingToast, duration: 8000 }
       );
     } finally {
@@ -108,11 +108,11 @@ export default function Cart() {
 
   const handleCheckout = () => {
     if (!config.publicKey) {
-      toast.error("Please configure your Paystack Public Key in the environment variables (VITE_PAYSTACK_PUBLIC_KEY).");
+      toast.error("Payment system is currently unavailable. Please try again later.");
       return;
     }
     if (!isFormValid()) {
-      toast.error("Please fill in all billing details.");
+      toast.error("Please fill in all required billing and delivery details.");
       return;
     }
     initializePayment({ onSuccess, onClose });
@@ -315,10 +315,14 @@ export default function Cart() {
                 <span className="text-primary/70">Subtotal</span>
                 <span className="font-bold">₵{subtotal.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between items-center">
                 <span className="text-primary/70">Delivery</span>
-                <span className="font-bold">
-                  {!isDelivery ? 'Store Pickup' : `₵${deliveryFee.toFixed(2)}`}
+                <span className="font-bold text-right">
+                  {!isDelivery ? 'Store Pickup' : (
+                    <span className="text-[10px] text-primary/60 uppercase tracking-widest">
+                      Calculated after order<br/>(Paid to rider)
+                    </span>
+                  )}
                 </span>
               </div>
             </div>

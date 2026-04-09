@@ -107,7 +107,7 @@ export default function ProductDetail() {
       color: selectedColor || undefined
     });
     
-    toast.success('Added to cart!');
+    toast.success(`${product.name} added to cart!`);
     if (redirect) {
       navigate('/cart');
     }
@@ -319,7 +319,7 @@ export default function ProductDetail() {
               </button>
             </div>
             <p className="text-[10px] text-center uppercase tracking-widest text-primary/40">
-              Flat rate delivery across Ghana for ₵50.
+              Delivery within Accra via third-party services. Cost calculated based on location.
             </p>
           </div>
 

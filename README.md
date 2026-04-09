@@ -40,16 +40,18 @@ A modern, headless e-commerce storefront for STRYD GH, built with React, Vite, a
    ```
 
 3. Environment Variables:
-   Create a `.env` file in the root directory and add your WooCommerce credentials:
+   Create a `.env` file in the root directory and add your WooCommerce and Paystack credentials.
+   **CRITICAL SECURITY NOTE:** Never prefix your WooCommerce keys with `VITE_`. Doing so will expose your admin keys to the public frontend bundle.
+
    ```env
-   VITE_WC_URL=https://your-woocommerce-store.com
-   VITE_WC_KEY=ck_your_consumer_key
-   VITE_WC_SECRET=cs_your_consumer_secret
+   # Public Variables (Safe for frontend)
+   VITE_PAYSTACK_PUBLIC_KEY=pk_test_your_paystack_public_key
    
-   # For Serverless Functions / Express Server
+   # Private Backend Variables (Never prefix with VITE_)
    WC_URL=https://your-woocommerce-store.com
    WC_KEY=ck_your_consumer_key
    WC_SECRET=cs_your_consumer_secret
+   PAYSTACK_SECRET_KEY=sk_test_your_paystack_secret_key
    ```
 
 4. Start the development server:

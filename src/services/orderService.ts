@@ -27,16 +27,26 @@ export async function createWooCommerceOrder(
   paystackRef: string,
   paystackAmount: number
 ): Promise<OrderResult> {
-  const response = await fetch('/api/orders', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ billing, lineItems, paystackRef, paystackAmount }),
-  });
+  try {
+    const response = await fetch('/api/orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ billing, lineItems, paystackRef, paystackAmount }),
+    });
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || 'Failed to create order');
+    if (!response.ok) {
+      let errorMessage = 'Failed to create order';
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.details || errorData.error || errorMessage;
+      } catch (e) {
+        errorMessage = `Server error: ${response.status} ${response.statusText}`;
+      }
+      throw new Error(errorMessage);
+    }
+
+    return await response.json();
+  } catch (error: any) {
+    throw new Error(error.message || 'Network error occurred while creating order');
   }
-
-  return response.json();
 }

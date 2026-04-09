@@ -32,7 +32,7 @@ export default function QuickViewModal({ product, onClose }: { product: Product;
       color: selectedColor || undefined
     });
     
-    toast.success('Added to cart!');
+    toast.success(`${product.name} added to cart!`);
     onClose();
   };
 
