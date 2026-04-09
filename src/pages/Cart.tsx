@@ -6,6 +6,7 @@ import { usePaystackPayment } from 'react-paystack';
 import { toast } from 'react-hot-toast';
 import { useCartStore } from '../store/cartStore';
 import { createWooCommerceOrder, BillingInfo } from '../services/orderService';
+import LazyImage from '../components/LazyImage';
 
 export default function Cart() {
   const { items, removeItem, updateQuantity, getTotalPrice, clearCart } = useCartStore();
@@ -155,11 +156,12 @@ export default function Cart() {
               animate={{ opacity: 1, y: 0 }}
               className="flex gap-4 md:gap-6 p-4 border border-primary/10 rounded-[5px]"
             >
-              <div className="w-24 h-24 md:w-32 md:h-32 bg-[#0A0A0A]/5 dark:bg-[#F5F5F5] rounded-[5px] overflow-hidden shrink-0">
-                <img 
+              <div className="w-24 h-24 md:w-32 md:h-32 bg-[#0A0A0A]/5 dark:bg-[#F5F5F5] rounded-[5px] overflow-hidden shrink-0 relative">
+                <LazyImage 
                   src={item.product.images[0]?.src || 'https://stryd.visoirejewels.com/wp-content/uploads/2026/04/stryd-model-01.webp'} 
                   alt={item.product.name}
                   className="w-full h-full object-contain mix-blend-multiply"
+                  containerClassName="absolute inset-0 w-full h-full bg-transparent"
                   referrerPolicy="no-referrer"
                 />
               </div>

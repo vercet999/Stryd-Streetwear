@@ -6,6 +6,7 @@ import { cn } from '../lib/utils';
 import { useCartStore } from '../store/cartStore';
 import { searchAllProducts } from '../services/woocommerce';
 import { Product } from '../types';
+import LazyImage from './LazyImage';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -227,10 +228,11 @@ export default function Navbar() {
                             }}
                             className="flex items-center gap-3 p-3 hover:bg-primary/5 transition-colors border-b border-primary/5 last:border-0"
                           >
-                            <img 
+                            <LazyImage 
                               src={product.images[0]?.src || 'https://stryd.visoirejewels.com/wp-content/uploads/2026/04/stryd-model-01.webp'} 
                               alt={product.name}
                               className="w-10 h-10 object-contain bg-primary/5 rounded"
+                              containerClassName="w-10 h-10 shrink-0"
                               referrerPolicy="no-referrer"
                             />
                             <div className="flex-1 min-w-0">
@@ -316,10 +318,11 @@ export default function Navbar() {
                               }}
                               className="flex items-center gap-3 p-3 hover:bg-primary/5 transition-colors border-b border-primary/5 last:border-0"
                             >
-                              <img 
+                              <LazyImage 
                                 src={product.images[0]?.src || 'https://stryd.visoirejewels.com/wp-content/uploads/2026/04/stryd-model-01.webp'} 
                                 alt={product.name}
                                 className="w-10 h-10 object-contain bg-primary/5 rounded"
+                                containerClassName="w-10 h-10 shrink-0"
                                 referrerPolicy="no-referrer"
                               />
                               <div className="flex-1 min-w-0">

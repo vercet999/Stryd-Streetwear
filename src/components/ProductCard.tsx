@@ -3,6 +3,7 @@ import { Product } from '../types';
 import { motion } from 'motion/react';
 import { cn } from '../lib/utils';
 import { Eye } from 'lucide-react';
+import LazyImage from './LazyImage';
 
 export default function ProductCard({ product, onQuickView }: { product: Product; key?: any; onQuickView?: (product: Product) => void }) {
   return (
@@ -14,20 +15,22 @@ export default function ProductCard({ product, onQuickView }: { product: Product
     >
       <div className="block space-y-4 relative">
         <Link to={`/piece/${product.slug}`} className="block aspect-square overflow-hidden bg-[#0A0A0A]/5 dark:bg-[#F5F5F5] relative rounded-[5px]">
-          <img
+          <LazyImage
             src={product.images[0]?.src || 'https://stryd.visoirejewels.com/wp-content/uploads/2026/04/stryd-model-01.webp'}
             alt={product.images[0]?.alt || product.name}
             className={cn(
               "absolute inset-0 w-full h-full object-contain mix-blend-multiply transition-opacity duration-500 ease-in-out",
               product.images.length > 1 ? "group-hover:opacity-0" : "group-hover:opacity-80"
             )}
+            containerClassName="absolute inset-0 w-full h-full bg-transparent"
             referrerPolicy="no-referrer"
           />
           {product.images.length > 1 && (
-            <img
+            <LazyImage
               src={product.images[1]?.src}
               alt={product.images[1]?.alt || product.name}
               className="absolute inset-0 w-full h-full object-contain mix-blend-multiply transition-opacity duration-500 ease-in-out opacity-0 group-hover:opacity-100"
+              containerClassName="absolute inset-0 w-full h-full bg-transparent"
               referrerPolicy="no-referrer"
             />
           )}

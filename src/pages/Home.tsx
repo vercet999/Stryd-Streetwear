@@ -5,6 +5,7 @@ import { Product } from '../types';
 import ProductCard from '../components/ProductCard';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowRight } from 'lucide-react';
+import LazyImage from '../components/LazyImage';
 
 export default function Home() {
   const [latestProducts, setLatestProducts] = useState<Product[]>([]);
@@ -45,10 +46,11 @@ export default function Home() {
             transition={{ duration: 1.5, ease: "easeInOut" }}
             className="absolute inset-0 w-full h-full"
           >
-            <img
+            <LazyImage
               src={isSecondary ? cat.secondaryImg : cat.primaryImg}
               alt={cat.name}
               className="w-full h-full object-cover opacity-70 scale-150 min-[922px]:scale-100 group-hover:opacity-50 group-hover:scale-[1.6] min-[922px]:group-hover:scale-110 transition-all duration-1000"
+              containerClassName="absolute inset-0 w-full h-full bg-transparent"
               referrerPolicy="no-referrer"
             />
           </motion.div>
@@ -62,11 +64,13 @@ export default function Home() {
       {/* Hero Section */}
       <section className="relative h-[90vh] flex items-center justify-center overflow-hidden bg-[#0A0A0A]">
         <div className="absolute inset-0 opacity-60">
-          <img 
+          <LazyImage 
             src="https://stryd.visoirejewels.com/wp-content/uploads/2026/04/hero-image-scaled.webp" 
             alt="STRYD Slides" 
             className="w-full h-full object-cover"
+            containerClassName="absolute inset-0 w-full h-full bg-transparent"
             referrerPolicy="no-referrer"
+            loading="eager"
           />
         </div>
         <div className="relative z-10 text-center space-y-8 px-4">
@@ -143,10 +147,11 @@ export default function Home() {
               <div className="lg:col-span-8 group cursor-pointer relative">
                 <Link to={`/piece/${topSellers[0].slug}`} className="block h-full">
                   <div className="h-full min-h-[400px] lg:min-h-[600px] overflow-hidden bg-[#0A0A0A]/5 dark:bg-[#F5F5F5] relative rounded-[5px] flex items-center justify-center p-12">
-                    <img 
+                    <LazyImage 
                       src={topSellers[0].images[0]?.src} 
                       alt={topSellers[0].name}
                       className="w-full h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-700"
+                      containerClassName="absolute inset-0 w-full h-full bg-transparent"
                       referrerPolicy="no-referrer"
                     />
                     <div className="absolute bottom-8 left-8 right-8 flex justify-between items-end">
@@ -173,10 +178,11 @@ export default function Home() {
                 <div key={product.id} className="flex-1 group cursor-pointer relative">
                   <Link to={`/piece/${product.slug}`} className="block h-full">
                     <div className="h-full min-h-[250px] overflow-hidden bg-[#0A0A0A]/5 dark:bg-[#F5F5F5] relative rounded-[5px] flex items-center justify-center p-8">
-                      <img 
+                      <LazyImage 
                         src={product.images[0]?.src} 
                         alt={product.name}
                         className="w-full h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-700"
+                        containerClassName="absolute inset-0 w-full h-full bg-transparent"
                         referrerPolicy="no-referrer"
                       />
                       <div className="absolute bottom-6 left-6 right-6">

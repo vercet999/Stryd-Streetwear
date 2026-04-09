@@ -6,6 +6,7 @@ import { useCartStore } from '../store/cartStore';
 import { toast } from 'react-hot-toast';
 import { cn } from '../lib/utils';
 import { Link } from 'react-router-dom';
+import LazyImage from './LazyImage';
 
 export default function QuickViewModal({ product, onClose }: { product: Product; onClose: () => void }) {
   const [selectedSize, setSelectedSize] = useState<string>('');
@@ -60,11 +61,12 @@ export default function QuickViewModal({ product, onClose }: { product: Product;
         </button>
 
         {/* Image Section */}
-        <div className="w-full md:w-1/2 bg-[#0A0A0A]/5 dark:bg-[#F5F5F5] aspect-square md:aspect-auto">
-          <img 
+        <div className="w-full md:w-1/2 bg-[#0A0A0A]/5 dark:bg-[#F5F5F5] aspect-square md:aspect-auto relative">
+          <LazyImage 
             src={product.images[0]?.src || 'https://stryd.visoirejewels.com/wp-content/uploads/2026/04/stryd-model-01.webp'} 
             alt={product.name}
             className="w-full h-full object-contain mix-blend-multiply p-8"
+            containerClassName="absolute inset-0 w-full h-full bg-transparent"
             referrerPolicy="no-referrer"
           />
         </div>

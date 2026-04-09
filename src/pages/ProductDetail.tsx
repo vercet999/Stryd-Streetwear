@@ -8,6 +8,7 @@ import { cn } from '../lib/utils';
 import { useCartStore } from '../store/cartStore';
 import { toast } from 'react-hot-toast';
 import LoadingSpinner from '../components/LoadingSpinner';
+import LazyImage from '../components/LazyImage';
 
 export default function ProductDetail() {
   const { slug } = useParams<{ slug: string }>();
@@ -180,10 +181,11 @@ export default function ProductDetail() {
                     selectedImage === i ? "border border-primary" : "border border-transparent hover:border-primary/20"
                   )}
                 >
-                  <img 
+                  <LazyImage 
                     src={img.src} 
                     alt={img.name} 
                     className="w-full h-full object-contain mix-blend-multiply" 
+                    containerClassName="w-full h-full bg-transparent"
                     referrerPolicy="no-referrer" 
                   />
                 </button>
@@ -208,6 +210,7 @@ export default function ProductDetail() {
                 className="w-full h-full object-contain mix-blend-multiply transition-transform duration-200 ease-out"
                 style={zoomStyle}
                 referrerPolicy="no-referrer"
+                fetchPriority="high"
               />
             </AnimatePresence>
           </div>
