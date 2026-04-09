@@ -319,7 +319,7 @@ export default function ProductDetail() {
               </button>
             </div>
             <p className="text-[10px] text-center uppercase tracking-widest text-primary/40">
-              Free delivery on all orders over ₵300.
+              Flat rate delivery across Ghana for ₵50.
             </p>
           </div>
 

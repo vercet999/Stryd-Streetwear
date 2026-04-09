@@ -7,6 +7,7 @@ import Home from './pages/Home';
 import Shop from './pages/Shop';
 import ProductDetail from './pages/ProductDetail';
 import Contact from './pages/Contact';
+import Terms from './pages/Terms';
 import Cart from './pages/Cart';
 import OrderSuccess from './pages/OrderSuccess';
 import ScrollToTopButton from './components/ScrollToTopButton';
@@ -35,6 +36,7 @@ export default function App() {
             <Route path="/shop" element={<Shop />} />
             <Route path="/piece/:slug" element={<ProductDetail />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/terms" element={<Terms />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/order-success" element={<OrderSuccess />} />
           </Routes>

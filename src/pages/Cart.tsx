@@ -13,7 +13,7 @@ export default function Cart() {
   const subtotal = getTotalPrice();
   
   const [isDelivery, setIsDelivery] = useState(true);
-  const deliveryFee = isDelivery ? (subtotal > 300 ? 0 : 20) : 0; // ₵20 flat rate if under ₵300 and delivery is selected
+  const deliveryFee = isDelivery ? 50 : 0; // ₵50 flat rate
   const total = subtotal + deliveryFee;
 
   const [billing, setBilling] = useState<BillingInfo>({
@@ -318,14 +318,9 @@ export default function Cart() {
               <div className="flex justify-between">
                 <span className="text-primary/70">Delivery</span>
                 <span className="font-bold">
-                  {!isDelivery ? 'Store Pickup' : (deliveryFee === 0 ? 'Free' : `₵${deliveryFee.toFixed(2)}`)}
+                  {!isDelivery ? 'Store Pickup' : `₵${deliveryFee.toFixed(2)}`}
                 </span>
               </div>
-              {isDelivery && deliveryFee > 0 && (
-                <p className="text-[10px] text-primary/50 text-right">
-                  Add ₵{(300 - subtotal).toFixed(2)} more for free delivery
-                </p>
-              )}
             </div>
 
             <div className="border-t border-primary/10 pt-4 flex justify-between items-center">

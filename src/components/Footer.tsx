@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 export default function Footer() {
   return (
     <footer className="bg-[#0A0A0A] text-[#F5F5F5] py-12 px-4">
-      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12">
         <div className="space-y-4">
           <div className="relative h-8 w-32">
             <img src="/assets/stryd-white.svg" alt="STRYD" className="absolute inset-0 h-8 w-auto" />
@@ -24,11 +24,19 @@ export default function Footer() {
         </div>
 
         <div className="space-y-4">
+          <h3 className="text-xs font-bold uppercase tracking-widest text-[#F5F5F5]/40">Support</h3>
+          <ul className="space-y-2">
+            <li><Link to="/contact" className="text-sm hover:text-accent transition-colors">Contact Us</Link></li>
+            <li><Link to="/terms" className="text-sm hover:text-accent transition-colors">Terms & Conditions</Link></li>
+            <li><a href="https://wa.me/message/FMPYWT5AA4IAO1" target="_blank" rel="noopener noreferrer" className="text-sm hover:text-accent transition-colors">WhatsApp Support</a></li>
+          </ul>
+        </div>
+
+        <div className="space-y-4">
           <h3 className="text-xs font-bold uppercase tracking-widest text-[#F5F5F5]/40">Connect</h3>
           <ul className="space-y-2">
             <li><a href="https://www.instagram.com/strydgh/" target="_blank" rel="noopener noreferrer" className="text-sm hover:text-accent transition-colors">Instagram</a></li>
             <li><a href="https://tiktok.com/@stryd.gh" target="_blank" rel="noopener noreferrer" className="text-sm hover:text-accent transition-colors">TikTok</a></li>
-            <li><a href="https://wa.me/message/FMPYWT5AA4IAO1" target="_blank" rel="noopener noreferrer" className="text-sm hover:text-accent transition-colors">WhatsApp Support</a></li>
           </ul>
         </div>
       </div>
