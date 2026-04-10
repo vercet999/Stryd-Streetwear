@@ -13,7 +13,7 @@ export default function Cart() {
   const navigate = useNavigate();
   const subtotal = getTotalPrice();
   
-  const [isDelivery, setIsDelivery] = useState(true);
+  const [isDelivery, setIsDelivery] = useState(false);
   const deliveryFee = 0; // Calculated after order
   const total = subtotal + deliveryFee;
 
