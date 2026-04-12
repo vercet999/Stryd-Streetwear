@@ -296,8 +296,8 @@ export default function ProductDetail() {
         </div>
 
         {/* Product Info */}
-        <div className="lg:col-span-5 space-y-10 lg:py-8">
-          <div className="space-y-4">
+        <div className="lg:col-span-5 flex flex-col lg:py-8">
+          <div className="space-y-4 mb-10">
             <div className="flex items-center justify-between">
               <Link to={`/shop?brand=${brandName.toLowerCase()}`} className="text-xs font-bold uppercase tracking-[0.2em] text-primary/40 hover:text-accent transition-colors">
                 {brandName}
@@ -322,7 +322,7 @@ export default function ProductDetail() {
           </div>
 
           {colors.length > 0 && (
-            <div className="space-y-4">
+            <div className="space-y-4 mb-10">
               <h3 className="text-xs font-bold uppercase tracking-widest">Choose Colour</h3>
               <div className="flex flex-wrap gap-3">
                 {colors.map(color => (
@@ -349,7 +349,7 @@ export default function ProductDetail() {
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
-                className="space-y-4 overflow-hidden"
+                className="space-y-4 overflow-hidden mb-[15px]"
               >
                 <div className="flex justify-between items-center pt-2">
                   <h3 className="text-xs font-bold uppercase tracking-widest">Select Size</h3>
@@ -381,7 +381,7 @@ export default function ProductDetail() {
           </AnimatePresence>
 
           {product.short_description && (
-            <div className="pt-2">
+            <div className="pt-2 mb-[10px]">
               <div 
                 className="text-sm text-primary/70 leading-relaxed prose prose-sm"
                 dangerouslySetInnerHTML={{ __html: product.short_description }}
@@ -389,7 +389,7 @@ export default function ProductDetail() {
             </div>
           )}
 
-          <div className="pt-6 space-y-4">
+          <div className="pt-6 space-y-4 mb-10">
             <div className="flex gap-2">
               <button 
                 onClick={() => handleAddToCart(true)}
@@ -413,7 +413,7 @@ export default function ProductDetail() {
           </div>
 
           {/* Social Share */}
-          <div className="pt-6 pb-2 space-y-4 border-t border-primary/10">
+          <div className="pt-6 pb-2 space-y-4 border-t border-primary/10 mb-10">
             <h3 className="text-xs font-bold uppercase tracking-widest">Share</h3>
             <div className="flex flex-wrap gap-3">
               <button onClick={() => handleShare('whatsapp')} className="w-10 h-10 flex items-center justify-center border border-primary/10 hover:border-primary text-primary/60 hover:text-primary transition-all" title="Share on WhatsApp">
