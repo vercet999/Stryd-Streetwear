@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { getProductBySlug } from '../services/woocommerce';
-import { Product } from '../types';
+import { getProductBySlug, getProductVariations } from '../services/woocommerce';
+import { Product, ProductVariation } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 import { ChevronLeft, ChevronRight, ShoppingCart, X, Facebook, Twitter, Link2 } from 'lucide-react';
 import { cn } from '../lib/utils';
@@ -13,9 +13,10 @@ import LazyImage from '../components/LazyImage';
 export default function ProductDetail() {
   const { slug } = useParams<{ slug: string }>();
   const [product, setProduct] = useState<Product | null>(null);
+  const [variations, setVariations] = useState<ProductVariation[]>([]);
   const [selectedSize, setSelectedSize] = useState<string>('');
   const [selectedColor, setSelectedColor] = useState<string>('');
-  const [selectedImage, setSelectedImage] = useState<number>(0);
+  const [selectedImage, setSelectedImage] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
@@ -46,9 +47,13 @@ export default function ProductDetail() {
   useEffect(() => {
     if (slug) {
       setLoading(true);
-      getProductBySlug(slug).then(p => {
+      getProductBySlug(slug).then(async p => {
         setProduct(p || null);
-        setSelectedImage(0);
+        setSelectedImage(p?.images[0]?.src || '');
+        if (p && p.type === 'variable') {
+          const vars = await getProductVariations(p.id);
+          setVariations(vars);
+        }
         setLoading(false);
       });
     }
@@ -58,16 +63,96 @@ export default function ProductDetail() {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!product || product.images.length <= 1) return;
       
+      const currentIndex = product.images.findIndex(img => img.src === selectedImage);
+      const safeIndex = currentIndex === -1 ? 0 : currentIndex;
+
       if (e.key === 'ArrowLeft') {
-        setSelectedImage(prev => (prev > 0 ? prev - 1 : product.images.length - 1));
+        const newIndex = safeIndex > 0 ? safeIndex - 1 : product.images.length - 1;
+        setSelectedImage(product.images[newIndex].src);
       } else if (e.key === 'ArrowRight') {
-        setSelectedImage(prev => (prev < product.images.length - 1 ? prev + 1 : 0));
+        const newIndex = safeIndex < product.images.length - 1 ? safeIndex + 1 : 0;
+        setSelectedImage(product.images[newIndex].src);
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [product]);
+  }, [product, selectedImage]);
+
+  const { sizes, colors, brandName, otherAttributes, currentStockStatus, displayName } = React.useMemo(() => {
+    if (!product) return { sizes: [], colors: [], brandName: 'STRYD', otherAttributes: [], currentStockStatus: 'instock', displayName: '' };
+
+    let sizes = product.attributes.find(a => a.name.toLowerCase() === 'size')?.options || [];
+    const colors = product.attributes.find(a => ['color', 'colour'].includes(a.name.toLowerCase()))?.options || [];
+    const brandAttr = product.attributes.find(a => a.name.toLowerCase() === 'brand')?.options?.[0];
+    const brandName = product.brands?.[0]?.name || brandAttr || 'STRYD';
+    const otherAttributes = product.attributes.filter(a => !['size', 'color', 'colour', 'brand'].includes(a.name.toLowerCase()) && a.visible);
+
+    let displayName = product.name;
+    if (selectedColor) {
+      displayName = `${product.name} — ${selectedColor.toUpperCase()}`;
+    }
+
+    // Filter sizes based on selected color if it's a variable product
+    if (product.type === 'variable' && variations.length > 0 && selectedColor) {
+      const availableSizes = new Set<string>();
+      variations.forEach(variation => {
+        const colorAttr = variation.attributes.find(a => ['color', 'colour'].includes(a.name.toLowerCase()));
+        if (colorAttr && colorAttr.option === selectedColor) {
+          const sizeAttr = variation.attributes.find(a => a.name.toLowerCase() === 'size');
+          if (sizeAttr && variation.stock_status !== 'outofstock') {
+            availableSizes.add(sizeAttr.option);
+          }
+        }
+      });
+      if (availableSizes.size > 0) {
+        sizes = Array.from(availableSizes);
+      } else {
+        sizes = [];
+      }
+    }
+
+    // Determine stock status based on selected variation
+    let currentStockStatus = product.stock_status;
+    if (product.type === 'variable' && variations.length > 0 && selectedColor) {
+      if (selectedSize) {
+        const selectedVariation = variations.find(variation => {
+          const colorAttr = variation.attributes.find(a => ['color', 'colour'].includes(a.name.toLowerCase()));
+          const sizeAttr = variation.attributes.find(a => a.name.toLowerCase() === 'size');
+          return colorAttr?.option === selectedColor && sizeAttr?.option === selectedSize;
+        });
+        if (selectedVariation) {
+          currentStockStatus = selectedVariation.stock_status;
+        }
+      } else {
+        // If color is selected but no size, check if ANY size for this color is in stock
+        const hasInStockVariation = variations.some(variation => {
+          const colorAttr = variation.attributes.find(a => ['color', 'colour'].includes(a.name.toLowerCase()));
+          return colorAttr?.option === selectedColor && variation.stock_status !== 'outofstock';
+        });
+        if (!hasInStockVariation) {
+          currentStockStatus = 'outofstock';
+        }
+      }
+    }
+
+    return { sizes, colors, brandName, otherAttributes, currentStockStatus, displayName };
+  }, [product, variations, selectedColor, selectedSize]);
+
+  useEffect(() => {
+    if (selectedSize && sizes.length > 0 && !sizes.includes(selectedSize)) {
+      setSelectedSize('');
+    }
+  }, [sizes, selectedSize]);
+
+  useEffect(() => {
+    if (selectedColor && product && variations.length > 0) {
+      const variationWithColor = variations.find(v => v.attributes.some(a => ['color', 'colour'].includes(a.name.toLowerCase()) && a.option === selectedColor));
+      if (variationWithColor && variationWithColor.image && variationWithColor.image.src) {
+        setSelectedImage(variationWithColor.image.src);
+      }
+    }
+  }, [selectedColor, product, variations]);
 
   if (loading) {
     return (
@@ -108,7 +193,7 @@ export default function ProductDetail() {
       color: selectedColor || undefined
     });
     
-    toast.success(`${product.name} added to cart!`);
+    toast.success(`${displayName} added to cart!`);
     if (redirect) {
       navigate('/cart');
     }
@@ -117,8 +202,8 @@ export default function ProductDetail() {
   const handleShare = (platform: string) => {
     if (!product) return;
     const shareUrl = window.location.href;
-    const shareText = `Check out ${product.name} on STRYD GH`;
-    const shareImage = product.images[0]?.src || '';
+    const shareText = `Check out ${displayName} on STRYD GH`;
+    const shareImage = selectedImage || product.images[0]?.src || '';
     let url = '';
 
     switch (platform) {
@@ -144,12 +229,6 @@ export default function ProductDetail() {
     }
   };
 
-  const sizes = product.attributes.find(a => a.name.toLowerCase() === 'size')?.options || [];
-  const colors = product.attributes.find(a => a.name.toLowerCase() === 'color')?.options || [];
-  const brandAttr = product.attributes.find(a => a.name.toLowerCase() === 'brand')?.options?.[0];
-  const brandName = product.brands?.[0]?.name || brandAttr || 'STRYD';
-  const otherAttributes = product.attributes.filter(a => !['size', 'color', 'brand'].includes(a.name.toLowerCase()) && a.visible);
-
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-16">
       <nav className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-primary/40 mb-8 flex-wrap">
@@ -163,7 +242,7 @@ export default function ProductDetail() {
             <ChevronRight size={14} />
           </>
         )}
-        <span className="text-primary">{product.name}</span>
+        <span className="text-primary">{displayName}</span>
       </nav>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
@@ -175,10 +254,10 @@ export default function ProductDetail() {
               {product.images.map((img, i) => (
                 <button 
                   key={i} 
-                  onClick={() => setSelectedImage(i)}
+                  onClick={() => setSelectedImage(img.src)}
                   className={cn(
                     "aspect-square w-20 md:w-full bg-[#0A0A0A]/5 dark:bg-[#F5F5F5] shrink-0 transition-all rounded-[5px] overflow-hidden",
-                    selectedImage === i ? "border border-primary" : "border border-transparent hover:border-primary/20"
+                    selectedImage === img.src ? "border border-primary" : "border border-transparent hover:border-primary/20"
                   )}
                 >
                   <LazyImage 
@@ -205,8 +284,8 @@ export default function ProductDetail() {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.3, ease: "easeInOut" }}
-                src={product.images[selectedImage]?.src || product.images[0]?.src || 'https://stryd.visoirejewels.com/wp-content/uploads/2026/04/stryd-model-01.webp'} 
-                alt={product.name} 
+                src={selectedImage || product.images[0]?.src || 'https://stryd.visoirejewels.com/wp-content/uploads/2026/04/stryd-model-01.webp'} 
+                alt={displayName} 
                 className="w-full h-full object-contain mix-blend-multiply transition-transform duration-200 ease-out"
                 style={zoomStyle}
                 referrerPolicy="no-referrer"
@@ -228,13 +307,13 @@ export default function ProductDetail() {
               </Link>
             </div>
             <h1 className="text-3xl md:text-4xl font-display font-black tracking-tighter leading-tight">
-              {product.name}
+              {displayName}
             </h1>
             <div className="flex items-center gap-4">
               <p className="text-2xl font-medium text-primary/80">
                 ₵{parseFloat(product.price).toFixed(2)}
               </p>
-              {product.stock_status === 'outofstock' && (
+              {currentStockStatus === 'outofstock' && (
                 <span className="bg-primary/5 text-primary/60 border border-primary/10 text-[10px] font-bold uppercase px-3 py-1 tracking-widest">
                   Sold Out
                 </span>
@@ -244,7 +323,7 @@ export default function ProductDetail() {
 
           {colors.length > 0 && (
             <div className="space-y-4">
-              <h3 className="text-xs font-bold uppercase tracking-widest">Select Color</h3>
+              <h3 className="text-xs font-bold uppercase tracking-widest">Choose Colour</h3>
               <div className="flex flex-wrap gap-3">
                 {colors.map(color => (
                   <button
@@ -264,35 +343,42 @@ export default function ProductDetail() {
             </div>
           )}
 
-          {sizes.length > 0 && (
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <h3 className="text-xs font-bold uppercase tracking-widest">Select Size</h3>
-                <button 
-                  onClick={() => setIsSizeGuideOpen(true)}
-                  className="text-[10px] uppercase tracking-widest text-primary/40 underline underline-offset-4 hover:text-primary transition-colors"
-                >
-                  Size Guide
-                </button>
-              </div>
-              <div className="flex flex-wrap gap-3">
-                {sizes.map(size => (
-                  <button
-                    key={size}
-                    onClick={() => setSelectedSize(size)}
-                    className={cn(
-                      "w-14 h-14 flex items-center justify-center border text-sm font-bold transition-all",
-                      selectedSize === size 
-                        ? "bg-primary text-base border-primary" 
-                        : "border-primary/10 hover:border-primary text-primary/60 hover:text-primary"
-                    )}
+          <AnimatePresence>
+            {sizes.length > 0 && (colors.length === 0 || selectedColor) && (
+              <motion.div 
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="space-y-4 overflow-hidden"
+              >
+                <div className="flex justify-between items-center pt-2">
+                  <h3 className="text-xs font-bold uppercase tracking-widest">Select Size</h3>
+                  <button 
+                    onClick={() => setIsSizeGuideOpen(true)}
+                    className="text-[10px] uppercase tracking-widest text-primary/40 underline underline-offset-4 hover:text-primary transition-colors"
                   >
-                    {size}
+                    Size Guide
                   </button>
-                ))}
-              </div>
-            </div>
-          )}
+                </div>
+                <div className="flex flex-wrap gap-3 pb-2">
+                  {sizes.map(size => (
+                    <button
+                      key={size}
+                      onClick={() => setSelectedSize(size)}
+                      className={cn(
+                        "w-14 h-14 flex items-center justify-center border text-sm font-bold transition-all",
+                        selectedSize === size 
+                          ? "bg-primary text-base border-primary" 
+                          : "border-primary/10 hover:border-primary text-primary/60 hover:text-primary"
+                      )}
+                    >
+                      {size}
+                    </button>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {product.short_description && (
             <div className="pt-2">
@@ -307,14 +393,14 @@ export default function ProductDetail() {
             <div className="flex gap-2">
               <button 
                 onClick={() => handleAddToCart(true)}
-                disabled={product.stock_status === 'outofstock'}
+                disabled={currentStockStatus === 'outofstock'}
                 className="flex-1 bg-primary text-base py-5 font-bold uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-accent transition-all shadow-xl shadow-primary/10 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 SECURE PAIR
               </button>
               <button 
                 onClick={() => handleAddToCart(false)}
-                disabled={product.stock_status === 'outofstock'}
+                disabled={currentStockStatus === 'outofstock'}
                 className="w-[15%] min-w-[60px] bg-primary/5 text-primary border border-primary/10 py-5 flex items-center justify-center hover:bg-primary hover:text-base transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Add to Cart"
               >
@@ -354,7 +440,7 @@ export default function ProductDetail() {
           <div className="space-y-4 pt-4 border-t border-primary/10">
             {otherAttributes.length > 0 && (
               <div className="space-y-4">
-                <h3 className="text-xs font-bold uppercase tracking-widest">The Blueprint</h3>
+                <h3 className="text-xs font-bold uppercase tracking-widest">Descriptions</h3>
                 <ul className="space-y-3 text-sm text-primary/70">
                   {otherAttributes.map(attr => (
                     <li key={attr.id} className="flex gap-4">

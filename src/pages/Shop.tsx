@@ -24,8 +24,10 @@ export default function Shop() {
   const categoryFilter = searchParams.get('category') || '';
   const brandFilter = searchParams.get('brand') || '';
   const colorFilter = searchParams.get('color') || '';
+  const sizeFilter = searchParams.get('size') || '';
   const sortOrder = searchParams.get('sort') || '';
   const searchFilter = searchParams.get('search') || '';
+  const [showAllBrands, setShowAllBrands] = useState(false);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -71,6 +73,11 @@ export default function Shop() {
         p.attributes.some(attr => attr.name === 'Color' && attr.options.some(opt => opt.toLowerCase() === colorFilter.toLowerCase()))
       );
     }
+    if (sizeFilter) {
+      result = result.filter(p => 
+        p.attributes.some(attr => attr.name.toLowerCase() === 'size' && attr.options.some(opt => opt.toLowerCase() === sizeFilter.toLowerCase()))
+      );
+    }
 
     if (sortOrder === 'price-asc') {
       result.sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
@@ -83,7 +90,7 @@ export default function Shop() {
     }
 
     return result;
-  }, [products, categoryFilter, brandFilter, colorFilter, sortOrder]);
+  }, [products, categoryFilter, brandFilter, colorFilter, sizeFilter, sortOrder, searchFilter]);
 
   const updateFilter = (key: string, value: string) => {
     const newParams = new URLSearchParams(searchParams);
@@ -96,9 +103,30 @@ export default function Shop() {
   };
 
   const categories = Array.from(new Set(products.flatMap(p => p.categories.map(c => c.slug)))) as string[];
-  const brands = Array.from(new Set(products.flatMap(p => p.brands?.map(b => b.slug) || []))) as string[];
+  
+  const brandSales = useMemo(() => {
+    const sales: Record<string, number> = {};
+    products.forEach(p => {
+      if (p.brands) {
+        p.brands.forEach(b => {
+          sales[b.slug] = (sales[b.slug] || 0) + (p.total_sales || 0);
+        });
+      }
+    });
+    return sales;
+  }, [products]);
+
+  const brands = useMemo(() => {
+    const brandsSet = new Set(products.flatMap(p => p.brands?.map(b => b.slug) || []));
+    return Array.from(brandsSet).sort((a, b) => (brandSales[b] || 0) - (brandSales[a] || 0));
+  }, [products, brandSales]);
+
   const colors = Array.from(new Set(products.flatMap(p => 
     p.attributes.find(a => a.name === 'Color')?.options || []
+  ))) as string[];
+
+  const sizes = Array.from(new Set(products.flatMap(p => 
+    p.attributes.find(a => a.name.toLowerCase() === 'size')?.options || []
   ))) as string[];
 
   const lastProductElementRef = useCallback((node: HTMLDivElement) => {
@@ -189,7 +217,7 @@ export default function Shop() {
             >
               All Brands
             </button>
-            {brands.map(brand => (
+            {(showAllBrands ? brands : brands.slice(0, 5)).map(brand => (
               <button
                 key={brand}
                 onClick={() => updateFilter('brand', brand)}
@@ -198,6 +226,14 @@ export default function Shop() {
                 {brand.replace('-', ' ')}
               </button>
             ))}
+            {brands.length > 5 && (
+              <button
+                onClick={() => setShowAllBrands(!showAllBrands)}
+                className="block w-full text-left text-xs font-bold uppercase tracking-widest text-primary/40 hover:text-primary transition-colors pt-2"
+              >
+                {showAllBrands ? 'View Less' : 'View All'}
+              </button>
+            )}
           </div>
         </details>
       )}
@@ -226,6 +262,36 @@ export default function Shop() {
                 className={`px-3 py-1.5 text-xs border ${colorFilter.toLowerCase() === color.toLowerCase() ? 'bg-primary text-base border-primary font-bold' : 'border-primary/20 hover:border-primary text-primary/60 hover:text-primary'} transition-colors`}
               >
                 {color}
+              </button>
+            ))}
+          </div>
+        </details>
+      )}
+
+      {/* Sizes */}
+      {sizes.length > 0 && (
+        <details className="group py-4" open>
+          <summary className="flex items-center justify-between cursor-pointer list-none text-sm font-bold uppercase tracking-widest mb-4 [&::-webkit-details-marker]:hidden">
+            <span className="flex items-center gap-2">
+              Size
+              {sizeFilter && <span className="w-1.5 h-1.5 rounded-full bg-accent" />}
+            </span>
+            <ChevronDown size={16} className="transition-transform group-open:rotate-180 text-primary/40 group-hover:text-primary" />
+          </summary>
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => updateFilter('size', '')}
+              className={`px-3 py-1.5 text-xs border ${sizeFilter === '' ? 'bg-primary text-base border-primary font-bold' : 'border-primary/20 hover:border-primary text-primary/60 hover:text-primary'} transition-colors`}
+            >
+              All
+            </button>
+            {sizes.map(size => (
+              <button
+                key={size}
+                onClick={() => updateFilter('size', size)}
+                className={`px-3 py-1.5 text-xs border ${sizeFilter.toLowerCase() === size.toLowerCase() ? 'bg-primary text-base border-primary font-bold' : 'border-primary/20 hover:border-primary text-primary/60 hover:text-primary'} transition-colors`}
+              >
+                {size}
               </button>
             ))}
           </div>

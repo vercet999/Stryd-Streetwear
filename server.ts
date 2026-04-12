@@ -65,6 +65,43 @@ async function startServer() {
     }
   });
 
+  app.get("/api/variations", async (req, res) => {
+    const WC_URL = process.env.WC_URL;
+    const WC_KEY = process.env.WC_KEY;
+    const WC_SECRET = process.env.WC_SECRET;
+
+    if (!WC_URL || !WC_KEY || !WC_SECRET) {
+      return res.status(500).json({ error: "WooCommerce credentials missing" });
+    }
+
+    const auth = Buffer.from(`${WC_KEY}:${WC_SECRET}`).toString('base64');
+    const { product_id } = req.query;
+
+    if (!product_id) {
+      return res.status(400).json({ error: "Product ID is required" });
+    }
+
+    try {
+      const url = `${WC_URL}/wp-json/wc/v3/products/${product_id}/variations`;
+      
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Basic ${auth}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`WooCommerce API responded with status ${response.status}`);
+      }
+
+      const data = await response.json();
+      res.json(data);
+    } catch (error) {
+      console.error("Error fetching variations from WooCommerce:", error);
+      res.status(500).json({ error: "Failed to fetch variations" });
+    }
+  });
+
   // Local development mock for /api/orders (mirrors Vercel serverless function)
   app.post("/api/orders", async (req, res) => {
     const WC_URL = process.env.WC_URL;

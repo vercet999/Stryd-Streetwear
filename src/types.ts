@@ -1,3 +1,30 @@
+export interface ProductVariation {
+  id: number;
+  date_created: string;
+  permalink: string;
+  sku: string;
+  price: string;
+  regular_price: string;
+  sale_price: string;
+  on_sale: boolean;
+  status: string;
+  purchasable: boolean;
+  virtual: boolean;
+  downloadable: boolean;
+  stock_status: string;
+  image?: {
+    id: number;
+    src: string;
+    name: string;
+    alt: string;
+  };
+  attributes: {
+    id: number;
+    name: string;
+    option: string;
+  }[];
+}
+
 export interface Product {
   id: number;
   name: string;

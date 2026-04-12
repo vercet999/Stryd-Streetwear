@@ -249,3 +249,25 @@ export async function getProductBySlug(slug: string): Promise<Product | undefine
     return MOCK_PRODUCTS.find(p => p.slug === slug);
   }
 }
+
+export async function getProductVariations(productId: number): Promise<any[]> {
+  try {
+    const response = await fetch(`/api/variations?product_id=${productId}`);
+    
+    if (!response.ok) {
+      console.warn('Backend API failed for variations.');
+      return [];
+    }
+
+    const data = await response.json();
+    if (data.error) {
+      console.warn('Backend API error for variations:', data.error);
+      return [];
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Error fetching product variations:', error);
+    return [];
+  }
+}
