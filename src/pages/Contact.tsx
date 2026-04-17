@@ -19,7 +19,7 @@ export default function Contact() {
           Chat on WhatsApp
         </a>
         <a 
-          href="mailto:hello@stryd.com" 
+          href="mailto:support@strydgh.com" 
           className="w-full sm:w-auto flex items-center justify-center gap-3 border-2 border-[#0A0A0A] text-[#000000] dark:border-[#F5F5F5] dark:text-[#F5F5F5] px-10 py-4 font-bold uppercase tracking-widest hover:bg-[#0A0A0A] hover:text-[#F5F5F5] dark:hover:bg-[#F5F5F5] dark:hover:text-[#0A0A0A] transition-all"
         >
           <Mail size={20} />
