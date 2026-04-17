@@ -11,12 +11,14 @@ export default function Home() {
   const [latestProducts, setLatestProducts] = useState<Product[]>([]);
   const [topSellers, setTopSellers] = useState<Product[]>([]);
   const [showSecondary, setShowSecondary] = useState([false, false, false]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     getProducts().then(products => {
       setLatestProducts(products.slice(0, 4));
       const featured = products.filter(p => p.featured).sort((a, b) => new Date(b.date_created).getTime() - new Date(a.date_created).getTime());
       setTopSellers(featured.slice(0, 3));
+      setLoading(false);
     });
 
     let currentTick = 0;
@@ -125,9 +127,21 @@ export default function Home() {
         </div>
         
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
-          {latestProducts.map(product => (
-            <ProductCard key={product.id} product={product} />
-          ))}
+          {loading ? (
+            Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="space-y-4 animate-pulse">
+                <div className="aspect-square bg-primary/5 rounded-[5px]"></div>
+                <div className="space-y-2">
+                  <div className="h-4 bg-primary/10 rounded w-3/4"></div>
+                  <div className="h-4 bg-primary/10 rounded w-1/4"></div>
+                </div>
+              </div>
+            ))
+          ) : (
+            latestProducts.map(product => (
+              <ProductCard key={product.id} product={product} />
+            ))
+          )}
         </div>
       </section>
 
